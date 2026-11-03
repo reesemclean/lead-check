@@ -25,6 +25,7 @@
   --c0:#3db7b3; --c1:#e8984a; --c2:#a18ae6; --c3:#9cc25a; --c4:#e57896; --c5:#7aa8e0; --hatch:#3a3935;
 }
 *{box-sizing:border-box}
+[hidden]{display:none!important}
 html,body{margin:0}
 body{background:var(--bg);color:var(--text);font:15px/1.45 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-variant-numeric:tabular-nums;padding-bottom:84px}
 @media (min-width:900px){body{padding-bottom:0}}
@@ -96,6 +97,17 @@ tr.bar td{padding:0 0 8px}
 footer{margin-top:28px;color:var(--muted);font-size:13px;max-width:70ch}
 footer h3{color:var(--text);font-size:14px;margin:0 0 6px}
 footer ul{margin:0;padding-left:18px}
+.sub{border-top:1px solid var(--border);margin-top:16px;padding-top:14px}
+.sub h3{font-size:15px;margin:0 0 4px}
+.batch{border:1px solid var(--border);border-radius:10px;padding:10px;margin-bottom:10px}
+.bhead{display:grid;grid-template-columns:1fr 136px 28px;gap:8px;align-items:center}
+@media (max-width:519px){.bhead{grid-template-columns:1fr 28px;grid-template-areas:"l x" "v v"}.bhead .blabel{grid-area:l}.bhead .num{grid-area:v}.bhead .x{grid-area:x}}
+.bshares{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:6px 10px;margin-top:8px}
+.bs{display:grid;grid-template-columns:10px 1fr 72px;gap:6px;align-items:center;font-size:13px;min-width:0}
+.bs > span:nth-child(2){overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bs .num input{padding-right:24px;padding-left:6px}
+.blean{font-size:12px;color:var(--muted);margin-top:6px}
+.stat .note{flex-basis:100%;font-size:13px;color:var(--c1)}
 .mini{position:fixed;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--border);padding:10px 16px calc(10px + env(safe-area-inset-bottom));font-size:14px;z-index:5}
 .mini b{display:block;font-size:15px}
 @media (min-width:900px){.mini{display:none}}
@@ -148,11 +160,17 @@ footer ul{margin:0;padding-left:18px}
 
       <section class="card">
         <div class="step"><b>3</b><h2>How the rest breaks</h2></div>
-        <p class="muted small" style="margin:-4px 0 12px">Share of the <em>remaining</em> votes each candidate wins. Sliders always total 100%.</p>
+        <p class="muted small" style="margin:-4px 0 12px" id="sharesNote"></p>
         <div id="shares"></div>
         <div class="row">
           <button type="button" id="matchCurrent">Same as count so far</button>
           <button type="button" id="evenSplit">Even split</button>
+        </div>
+        <div class="sub">
+          <h3>Known batches <span class="muted small" style="font-weight:400">optional</span></h3>
+          <p class="muted small" style="margin:0 0 12px">If you know a chunk of the uncounted vote will break differently (late mail, a county, provisionals), add it here with its own split.</p>
+          <div id="batches"></div>
+          <div class="row"><button type="button" id="addBatch">+ Add batch</button></div>
         </div>
       </section>
     </div>
@@ -190,7 +208,7 @@ footer ul{margin:0;padding-left:18px}
 
 <script type="module">
 import { clamp, num, sum, rank, counted as countedOf, project as projectOf, breakEven,
-  sharesFromCounted, rebalance, toPct, defaults, encodeState, decodeState, MAX_CANDS } from './lead.js';
+  sharesFromCounted, rebalance, toPct, defaults, encodeState, decodeState, MAX_CANDS, MAX_BATCHES } from './lead.js';
 
 const COLORS = ['--c0','--c1','--c2','--c3','--c4','--c5'];
 const col = i => `var(${COLORS[i % COLORS.length]})`;
@@ -206,13 +224,14 @@ function save(){
 let state = decodeState(location.hash) || defaults();
 
 const counted = () => countedOf(state);
-const project = pIn => projectOf({ v: counted(), pIn, shares: state.cands.map(c => c.share) });
+const project = pIn => projectOf({ v: counted(), pIn, shares: state.cands.map(c => c.share), batches: state.batches });
 const setShares = arr => state.cands.forEach((c,i) => c.share = arr[i]);
 const matchCurrent = () => setShares(sharesFromCounted(counted()));
 const setShare = (i, val) => setShares(rebalance(state.cands.map(c => c.share), i, val));
 const normalizeShares = () => setShares(toPct(state.cands.map(c => c.share)));
 
-let rowRefs = [], shareRefs = [];
+let rowRefs = [], shareRefs = [], batchRefs = [];
+const cname = i => state.cands[i].name || `Candidate ${i+1}`;
 
 function buildRows(){
   document.querySelectorAll('.seg button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.mode === state.mode)));
@@ -232,26 +251,61 @@ function buildRows(){
       ${state.cands.length > 2 ? `<button type="button" class="x" aria-label="Remove candidate ${i+1}">×</button>` : '<span></span>'}
       <span class="sofar"></span>`;
     const nameEl = row.querySelector('.name'), valEl = row.querySelector('.val');
-    nameEl.addEventListener('input', () => { c.name = nameEl.value; shareRefs[i].lbl.textContent = c.name || `Candidate ${i+1}`; compute(); });
+    nameEl.addEventListener('input', () => { c.name = nameEl.value; document.querySelectorAll(`[data-cname="${i}"]`).forEach(el => el.textContent = cname(i)); compute(); });
     valEl.addEventListener('input', () => { if(isVotes) c.votes = num(valEl.value); else c.pct = num(valEl.value); compute(); });
     valEl.addEventListener('blur', () => { if(isVotes && c.votes) valEl.value = fmt(c.votes); });
     const x = row.querySelector('.x');
-    if(x) x.addEventListener('click', () => { state.cands.splice(i,1); normalizeShares(); buildRows(); compute(); });
+    if(x) x.addEventListener('click', () => {
+      state.cands.splice(i,1); normalizeShares();
+      state.batches.forEach(bt => { bt.shares.splice(i,1); bt.shares = toPct(bt.shares); });
+      buildRows(); compute();
+    });
     list.appendChild(row);
     rowRefs.push({ sofar: row.querySelector('.sofar') });
 
     const srow = document.createElement('div');
     srow.className = 'share';
-    srow.innerHTML = `<div class="lbl"><span class="dot" style="background:${col(i)}"></span><span></span></div>
+    srow.innerHTML = `<div class="lbl"><span class="dot" style="background:${col(i)}"></span><span data-cname="${i}"></span></div>
       <output></output>
       <input type="range" min="0" max="100" step="0.1" aria-label="Share of remaining for candidate ${i+1}" style="accent-color:${col(i)}">`;
     const lbl = srow.querySelector('.lbl span:last-child'), out = srow.querySelector('output'), rng = srow.querySelector('input');
-    lbl.textContent = c.name || `Candidate ${i+1}`;
+    lbl.textContent = cname(i);
     rng.addEventListener('input', () => { setShare(i, +rng.value); syncShares(); compute(); });
     sh.appendChild(srow);
     shareRefs.push({ lbl, out, rng });
   });
   syncShares();
+  buildBatches();
+}
+function buildBatches(){
+  const wrap = $('#batches'); wrap.innerHTML = ''; batchRefs = [];
+  state.batches.forEach((bt,k) => {
+    const el = document.createElement('div');
+    el.className = 'batch';
+    el.innerHTML = `<div class="bhead">
+        <input class="blabel" aria-label="Batch ${k+1} label" placeholder="e.g. Late mail" maxlength="60" value="${esc(bt.label)}">
+        <div class="num"><input class="bvotes" inputmode="decimal" aria-label="Estimated votes in batch ${k+1}" placeholder="0" value="${bt.votes ? fmt(bt.votes) : ''}"><span class="unit">votes</span></div>
+        <button type="button" class="x" aria-label="Remove batch ${k+1}">×</button>
+      </div>
+      <div class="bshares">${state.cands.map((c,i) => `<label class="bs"><span class="dot" style="background:${col(i)}"></span><span data-cname="${i}">${esc(cname(i))}</span>
+        <div class="num"><input inputmode="decimal" data-i="${i}" aria-label="Batch ${k+1} share for candidate ${i+1}"><span class="unit">%</span></div></label>`).join('')}</div>
+      <div class="blean"></div>`;
+    const lab = el.querySelector('.blabel'), vot = el.querySelector('.bvotes'), ins = [...el.querySelectorAll('.bs input')];
+    lab.addEventListener('input', () => { bt.label = lab.value; save(); });
+    vot.addEventListener('input', () => { bt.votes = num(vot.value); compute(); });
+    vot.addEventListener('blur', () => { if(bt.votes) vot.value = fmt(bt.votes); });
+    const sync = () => ins.forEach((inp,i) => inp.value = +bt.shares[i].toFixed(1));
+    ins.forEach((inp,i) => {
+      inp.addEventListener('input', () => { bt.shares[i] = num(inp.value); compute(); });
+      // On commit, rescale the others so the batch totals 100%, like the sliders.
+      inp.addEventListener('change', () => { bt.shares = rebalance(bt.shares, i, num(inp.value)); sync(); compute(); });
+    });
+    el.querySelector('.x').addEventListener('click', () => { state.batches.splice(k,1); buildBatches(); compute(); });
+    sync();
+    wrap.appendChild(el);
+    batchRefs.push({ lean: el.querySelector('.blean') });
+  });
+  $('#addBatch').hidden = state.batches.length >= MAX_BATCHES;
 }
 function syncShares(){
   state.cands.forEach((c,i) => {
@@ -279,15 +333,22 @@ function compute(){
     pw.textContent = `Percentages add up to ${tot.toFixed(1)}%. Add an “Other” row so they total 100%.`;
   } else pw.hidden = true;
 
-  $('#leftStat').innerHTML = P.C
-    ? `<div><span>Counted</span>${fmt(P.C)}</div><div><span>Est. remaining</span>${fmt(P.R)}</div><div><span>Est. total</span>${fmt(P.T)}</div>`
-    : `<div class="muted">Enter the count to see what’s left.</div>`;
+  $('#leftStat').innerHTML = !P.C
+    ? `<div class="muted">Enter the count to see what’s left.</div>`
+    : `<div><span>Counted</span>${fmt(P.C)}</div><div><span>Est. remaining</span>${fmt(P.R)}</div>` +
+      (P.B ? `<div><span>In batches</span>${fmt(P.B)}</div><div><span>Everything else</span>${fmt(P.rest)}</div>` : '') +
+      `<div><span>Est. total</span>${fmt(P.T)}</div>` +
+      (P.over ? `<div class="note">Your batches add up to more than the ${fmt(P.est)} votes this % counted implies, so they’re treated as all that’s left (the count would be ${(P.C/P.T*100).toFixed(1)}% complete).</div>` : '');
+  $('#sharesNote').innerHTML = P.B
+    ? 'Share each candidate wins of the remaining votes <em>not in a batch below</em>. Sliders always total 100%.'
+    : 'Share of the <em>remaining</em> votes each candidate wins. Sliders always total 100%.';
 
   if(!P.C){
     $('#headline').textContent = 'Enter the count so far';
     $('#sub').textContent = '';
     $('#needWrap').hidden = true; $('#table').innerHTML = '';
     $('#mini').innerHTML = '<b>Lead Check</b>Enter the count so far';
+    batchRefs.forEach(r => r.lean.textContent = '');
     save(); return;
   }
 
@@ -305,6 +366,14 @@ function compute(){
   const need = breakEven(P, a, b);
   const p2 = P.s[a] + P.s[b];
   const soFar = P.v[b] / P.C;
+  state.batches.forEach((bt,k) => {
+    const tot = sum(bt.shares), sh = toPct(bt.shares);
+    const d = sh[a] - sh[b];
+    let t = Math.abs(d) < 0.05 ? `Even between ${names[a]} and ${names[b]}` : `Leans ${names[d > 0 ? a : b]} +${Math.abs(d).toFixed(1)}`;
+    if(tot > 0 && Math.abs(tot - 100) > 0.05) t += ` · splits add to ${tot.toFixed(1)}%, scaled to 100%`;
+    if(!bt.votes) t += ' · enter its size to include it';
+    batchRefs[k].lean.textContent = t;
+  });
   $('#needWrap').hidden = false;
   let nt;
   if(P.v[a] === P.v[b]){
@@ -318,7 +387,8 @@ function compute(){
     nt = `${esc(names[b])} needs <b>${pct(need)}</b> of the remaining vote to overtake ${esc(names[a])}. ` +
       (gap > 0
         ? `That’s ${gap.toFixed(1)} pts better than the ${pct(soFar)} they’ve won so far.`
-        : `They’ve won ${pct(soFar)} so far, so their current pace would be enough.`);
+        : `They’ve won ${pct(soFar)} so far, so their current pace would be enough.`) +
+      (P.B ? ` With your batches, this scenario gives them ${pct(P.s[b])} overall.` : '');
   }
   $('#needText').innerHTML = nt;
 
@@ -328,7 +398,9 @@ function compute(){
     const pLo = clamp(state.pctIn - state.unc, 1, 100), pHi = clamp(state.pctIn + state.unc, 1, 100);
     lo = breakEven(project(pLo), a, b);  // more left → lower bar
     hi = breakEven(project(pHi), a, b);
-    $('#rangeText').textContent = `If the count is really ${pLo}–${pHi}% complete, ${names[b]} needs between ${needLabel(lo)} and ${needLabel(hi)}.`;
+    $('#rangeText').textContent = needLabel(lo) === needLabel(hi)
+      ? `Even if the count is really ${pLo}–${pHi}% complete, ${names[b]} still needs ${needLabel(lo)}` + (P.B ? ' (your batches cover what’s left).' : '.')
+      : `If the count is really ${pLo}–${pHi}% complete, ${names[b]} needs between ${needLabel(lo)} and ${needLabel(hi)}.`;
   } else $('#rangeText').textContent = '';
 
   // Meter: x = runner-up's share of ALL remaining votes
@@ -388,6 +460,7 @@ $('#total').addEventListener('blur', e => { if(state.total) e.target.value = fmt
 $('#add').addEventListener('click', () => {
   if(state.cands.length >= MAX_CANDS) return;
   state.cands.push({ name: state.cands.length === 2 ? 'Other' : `Candidate ${state.cands.length+1}`, votes:0, pct:0, share:0 });
+  state.batches.forEach(bt => bt.shares.push(0));
   normalizeShares(); buildRows(); compute();
 });
 const pr = $('#pctInRange'), pi = $('#pctIn');
@@ -400,6 +473,12 @@ function setPctIn(v, from){
 pr.addEventListener('input', () => setPctIn(+pr.value, 'range'));
 pi.addEventListener('input', () => { if(pi.value !== '') setPctIn(num(pi.value), 'num'); });
 $('#unc').addEventListener('change', e => { state.unc = +e.target.value; compute(); });
+$('#addBatch').addEventListener('click', () => {
+  if(state.batches.length >= MAX_BATCHES) return;
+  state.batches.push({ label:'', votes:0, shares: toPct(state.cands.map(c => c.share)) });
+  buildBatches(); compute();
+  $('#batches .batch:last-child .blabel').focus();
+});
 $('#matchCurrent').addEventListener('click', () => { matchCurrent(); syncShares(); compute(); });
 $('#evenSplit').addEventListener('click', () => { state.cands.forEach(c => c.share = 100/state.cands.length); syncShares(); compute(); });
 $('#reset').addEventListener('click', () => { state = defaults(); matchCurrent(); init(); });

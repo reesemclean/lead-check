@@ -147,3 +147,74 @@ describe('URL state', () => {
     expect(s.cands[0].votes).toBe(1000);
   });
 });
+
+describe('batches', () => {
+  const v = [52000, 48000];
+  const base = { v, pIn: 80, shares: [50, 50] }; // 25,000 remaining
+
+  it('carve out of the estimate; the rest goes at the default split', () => {
+    const P = project({ ...base, batches: [{ label: 'Late mail', votes: 10000, shares: [40, 60] }] });
+    close(P.est, 25000);
+    close(P.B, 10000);
+    close(P.rest, 15000);
+    close(P.R, 25000);
+    close(P.add[0], 4000 + 7500);
+    close(P.add[1], 6000 + 7500);
+    close(sum(P.s), 1);
+    expect(P.over).toBe(false);
+  });
+
+  it('replace the estimate when they add up to more', () => {
+    const P = project({ ...base, batches: [{ votes: 20000, shares: [30, 70] }, { votes: 10000, shares: [50, 50] }] });
+    expect(P.over).toBe(true);
+    expect(P.rest).toBe(0);
+    close(P.R, 30000);
+    close(P.f[0], 52000 + 6000 + 5000);
+    close(P.f[1], 48000 + 14000 + 5000);
+  });
+
+  it('ignore empty batches and are the same as no batches when they match the default split', () => {
+    const plain = project(base);
+    const P = project({ ...base, batches: [{ votes: 0, shares: [0, 100] }, { votes: 5000, shares: [50, 50] }] });
+    expect(P.pools).toHaveLength(1);
+    P.f.forEach((x, i) => close(x, plain.f[i]));
+  });
+
+  it('pad short share arrays and normalize', () => {
+    const P = project({ v: [10, 10, 10], pIn: 50, shares: [1, 1, 1], batches: [{ votes: 30, shares: [2, 2] }] });
+    close(P.add[0], 15);
+    close(P.add[2], 0);
+  });
+
+  it('break-even identity holds with uneven batches', () => {
+    const cases = [
+      { ...base, batches: [{ votes: 10000, shares: [40, 60] }] },
+      { ...base, batches: [{ votes: 12000, shares: [65, 35] }, { votes: 8000, shares: [20, 80] }] },
+      { v: [5000, 4000, 1000], pIn: 60, shares: [45, 45, 10], batches: [{ votes: 2000, shares: [30, 50, 20] }] },
+      { ...base, batches: [{ votes: 40000, shares: [45, 55] }] }, // over the estimate
+    ];
+    for (const c of cases) {
+      const P = project(c);
+      const [a, b] = rank(P.v);
+      const need = breakEven(P, a, b);
+      // b's share of every pool rises by d, a's falls by d.
+      const d = need - P.s[b];
+      close(P.f[a] - d * P.R, P.f[b] + d * P.R, 1e-6 * P.T);
+    }
+  });
+
+  it('a batch leaning to the runner-up lowers what they need from everything else', () => {
+    const plain = breakEven(project(base), 0, 1);
+    const P = project({ ...base, batches: [{ votes: 10000, shares: [40, 60] }] });
+    // Same overall bar for all remaining votes, but the scenario pin (s_b) is now closer to it.
+    close(breakEven(P, 0, 1), plain);
+    expect(P.s[1]).toBeGreaterThan(0.5);
+  });
+
+  it('URL state keeps batches and aligns shares to candidates', () => {
+    const s = { ...defaults(), batches: [{ label: 'Mail', votes: '120,000', shares: [46, 54, 99] }] };
+    const d = decodeState(encodeState(s));
+    expect(d.batches).toEqual([{ label: 'Mail', votes: 120000, shares: [46, 54] }]);
+    expect(decodeState(encodeState({ cands: defaults().cands })).batches).toEqual([]);
+  });
+});

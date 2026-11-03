@@ -16,9 +16,10 @@ Static single-page app (`index.html`, no build step), deployed to Cloudflare Pag
 - Inputs: votes counted per candidate (or total + %), estimated % of expected vote counted, uncertainty (± pts), and each candidate's share of the *remaining* vote.
 - Remaining votes `R = C / pIn - C`, where `C` is the sum of counted votes.
 - Final for candidate i: `v_i + R * s_i` (shares normalized to 1).
-- **Break-even** (the headline metric): the share of ALL remaining votes the current runner-up `b` needs to pass the leader `a`, holding other candidates at their set shares:
-  `need = (R * (s_a + s_b) + (v_a - v_b)) / (2R)`.
-  It is out of reach if `need > s_a + s_b`. The ± uncertainty on % counted is shown as a break-even range.
+- **Batches** (optional, max 8): known chunks of the remaining vote, `{label, votes, shares}`, each with its own split. They are carved out of the estimated `R`; the rest (`R - Σbatches`) goes at the default slider shares. If batches exceed the estimate, they become the whole remaining vote (the UI says so). `s_i` is then each candidate's *effective* share of all remaining votes.
+- **Break-even** (the headline metric): the share of ALL remaining votes the current runner-up `b` needs to pass the leader `a`, holding other candidates at their set shares. General form (b gains the same amount in every pool, taken from a):
+  `need = s_b + (F_a - F_b) / (2R)`, which with no batches equals `(R * (s_a + s_b) + (v_a - v_b)) / (2R)`.
+  It is out of reach if `need > s_a + s_b`. The ± uncertainty on % counted is shown as a break-even range (it moves only the non-batch remainder).
 
 ## Product decisions
 - Neutral palette (teal/amber/etc.), never red/blue. No partisan cues.
@@ -29,8 +30,8 @@ Static single-page app (`index.html`, no build step), deployed to Cloudflare Pag
 - Max 6 candidates; minimum 2.
 
 ## Next up
-1. **Remaining vote by batch**: rows of `{label, est. votes, expected margin or shares}` (e.g. "Maricopa late mail, ~120k, B +8") that replace the single uniform remaining pool. This is the most realistic model.
-2. OG/meta image so shared links preview well.
+1. OG/meta image so shared links preview well.
+2. Batches: optional margin entry ("B +8") as an alternative to typing each split. The split inputs show the lean today.
 3. Optional: Workers static assets via `wrangler.toml` instead of Pages.
 
 ## Deploy
