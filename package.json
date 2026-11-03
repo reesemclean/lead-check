@@ -1,0 +1,12 @@
+{
+  "name": "lead-check",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "vitest run",
+    "dev": "npx --yes serve -l 8788 ."
+  },
+  "devDependencies": {
+    "vitest": "^3.2.4"
+  }
+}

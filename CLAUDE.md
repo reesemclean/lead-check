@@ -3,6 +3,15 @@
 Election-night what-if calculator: "Is that lead big enough given the % counted?"
 Static single-page app (`index.html`, no build step), deployed to Cloudflare Pages.
 
+## Files
+- `index.html`: markup, styles and UI code (`<script type="module">`).
+- `lead.js`: pure math and URL-state helpers, no DOM. All model changes go here, with tests.
+- `test/lead.test.js`: Vitest. Run `npm test`.
+
+## Local dev
+`index.html` imports `lead.js` as an ES module, so it must be served over HTTP (opening the file directly won't work):
+`npm run dev` (or `python3 -m http.server`).
+
 ## Core model
 - Inputs: votes counted per candidate (or total + %), estimated % of expected vote counted, uncertainty (± pts), and each candidate's share of the *remaining* vote.
 - Remaining votes `R = C / pIn - C`, where `C` is the sum of counted votes.
@@ -21,9 +30,8 @@ Static single-page app (`index.html`, no build step), deployed to Cloudflare Pag
 
 ## Next up
 1. **Remaining vote by batch**: rows of `{label, est. votes, expected margin or shares}` (e.g. "Maricopa late mail, ~120k, B +8") that replace the single uniform remaining pool. This is the most realistic model.
-2. Extract the math into `lead.js` with unit tests (Vitest), including the break-even identity: at `need`, the finals for a and b are equal.
-3. OG/meta image so shared links preview well.
-4. Optional: Workers static assets via `wrangler.toml` instead of Pages.
+2. OG/meta image so shared links preview well.
+3. Optional: Workers static assets via `wrangler.toml` instead of Pages.
 
 ## Deploy
 ```
