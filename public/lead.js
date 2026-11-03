@@ -3,6 +3,9 @@
 export const MIN_CANDS = 2;
 export const MAX_CANDS = 6;
 export const MAX_BATCHES = 8;
+/** Allowed ± points of uncertainty on % counted; DEFAULT_UNC is what most people get. */
+export const UNC_OPTIONS = [0, 2, 3, 5, 10];
+export const DEFAULT_UNC = 3;
 
 export const clamp = (x, a, b) => Math.min(Math.max(x, a), b);
 export const num = s => { const n = parseFloat(String(s).replace(/[^0-9.]/g, '')); return isFinite(n) ? n : 0; };
@@ -102,7 +105,7 @@ export const toPct = shares => normalize(shares).map(x => x * 100);
 
 export function defaults() {
   return {
-    mode: 'votes', total: 0, pctIn: 78, cands: [
+    mode: 'votes', total: 0, pctIn: 78, unc: DEFAULT_UNC, cands: [
       { name: 'Candidate A', votes: 412305, pct: 0, share: 0 },
       { name: 'Candidate B', votes: 398770, pct: 0, share: 0 }
     ],
@@ -124,6 +127,7 @@ export function decodeState(hash) {
       mode: s.mode === 'pct' ? 'pct' : 'votes',
       total: num(s.total),
       pctIn: clamp(num(s.pctIn) || 78, 1, 100),
+      unc: UNC_OPTIONS.includes(s.unc) ? s.unc : DEFAULT_UNC,
       cands: s.cands.slice(0, MAX_CANDS).map(c => ({
         name: String(c?.name || '').slice(0, 40), votes: num(c?.votes), pct: num(c?.pct), share: num(c?.share)
       })),

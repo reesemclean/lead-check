@@ -108,8 +108,6 @@ input[type=range]{width:100%;accent-color:var(--ink)}
 footer{margin-top:28px;color:var(--muted);font-size:13px;max-width:70ch}
 footer h3{color:var(--text);font-size:14px;margin:0 0 6px}
 footer ul{margin:0;padding-left:18px}
-.sub{border-top:1px solid var(--border);margin-top:16px;padding-top:14px}
-.sub h3{font-size:15px;margin:0 0 4px}
 .batch{border:1px solid var(--border);border-radius:10px;padding:10px;margin-bottom:10px}
 .bhead{display:grid;grid-template-columns:1fr 136px 28px;gap:8px;align-items:center}
 @media (max-width:519px){.bhead{grid-template-columns:1fr 28px;grid-template-areas:"l x" "v v"}.bhead .blabel{grid-area:l}.bhead .num{grid-area:v}.bhead .x{grid-area:x}}
@@ -119,12 +117,21 @@ footer ul{margin:0;padding-left:18px}
 .bs .num input{padding-right:24px;padding-left:6px}
 .blean{font-size:12px;color:var(--muted);margin-top:6px}
 .stat .note{grid-column:1 / -1;font-size:13px;color:var(--c1);line-height:1.4}
-.peek{position:fixed;left:0;right:0;top:0;z-index:5;display:block;width:100%;text-align:left;border:0;border-bottom:1px solid var(--border);border-radius:0;background:var(--surface);padding:10px 16px;padding-top:calc(10px + env(safe-area-inset-top));font-size:14px;box-shadow:0 2px 10px rgba(0,0,0,.08);transform:translateY(-110%);transition:transform .2s ease;visibility:hidden}
-.peek b{display:block;font-size:15px}
-.peek span{color:var(--muted)}
-body.peeking .peek{transform:none;visibility:visible}
-@media (min-width:900px){.peek{display:none}}
-@media (prefers-reduced-motion:reduce){.peek{transition:none}}
+details.more{border-top:1px solid var(--border);margin-top:16px}
+details.more > summary,details.adv > summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:8px;min-height:44px}
+details.more > summary::-webkit-details-marker,details.adv > summary::-webkit-details-marker{display:none}
+details.more > summary::before,details.adv > summary::before{content:"";width:7px;height:7px;flex:none;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:rotate(-45deg);transition:transform .15s ease;margin:0 4px 0 2px}
+details[open].more > summary::before,details[open].adv > summary::before{transform:translateY(-3px) rotate(45deg)}
+details.more > summary{padding-top:6px;margin-bottom:-6px}
+details.more > summary b{font-size:15px}
+details.more > summary .muted{font-size:13px;margin-left:auto;text-align:right}
+details.more[open] > summary{margin-bottom:6px}
+details.adv{margin-top:24px;max-width:70ch;color:var(--muted);font-size:14px}
+details.adv > summary{color:var(--text);font-weight:600;font-size:14px;width:max-content}
+.advbody{padding:4px 0 0 21px}
+.advbody p{margin:0 0 10px}
+.advbody .seg{margin:0}
+@media (prefers-reduced-motion:reduce){details > summary::before{transition:none}}
 </style>
 </head>
 <body>
@@ -138,7 +145,7 @@ body.peeking .peek{transform:none;visibility:visible}
     <div>
       <section class="card">
         <div class="step"><b>1</b><h2>The count so far</h2></div>
-        <div class="seg" role="group" aria-label="Entry mode">
+        <div class="seg" role="group" aria-label="Entry mode" id="modeSeg">
           <button type="button" data-mode="votes">Votes</button>
           <button type="button" data-mode="pct">Percentages</button>
         </div>
@@ -161,12 +168,12 @@ body.peeking .peek{transform:none;visibility:visible}
           </div>
         </div>
         <div class="stat" id="leftStat"></div>
-        <div class="sub">
-          <h3>Known batches <span class="muted small" style="font-weight:400">optional</span></h3>
+        <details class="more" id="batchBox">
+          <summary><b>Known batches</b><span class="muted" id="batchSum">optional</span></summary>
           <p class="muted small" style="margin:0 0 12px">If you know a chunk of the uncounted vote will break differently (late mail, a county, provisionals), add it here with its own split.</p>
           <div id="batches"></div>
           <div class="row"><button type="button" id="addBatch">+ Add batch</button></div>
-        </div>
+        </details>
       </section>
     </div>
 
@@ -201,21 +208,29 @@ body.peeking .peek{transform:none;visibility:visible}
     </section>
   </div>
 
+  <details class="adv" id="advBox">
+    <summary>Advanced</summary>
+    <div class="advbody">
+      <p>How far off could the “% counted” estimate be? The break-even range and the grey band on the meter use this. Most people can leave it at ± 3.</p>
+      <div class="seg" role="group" aria-label="Uncertainty in percent counted" id="uncSeg"></div>
+    </div>
+  </details>
+
   <footer>
     <h3>Read this before trusting the math</h3>
     <ul>
-      <li>“Percent counted” is an estimate of total turnout, not a hard number. The range assumes it could be off by 3 points either way; early in the night it can miss by more, so try dragging it.</li>
+      <li>“Percent counted” is an estimate of total turnout, not a hard number. The range assumes it could be off by 3 points either way (change that under Advanced). Early in the night it can miss by more, so try dragging it.</li>
       <li>Uncounted votes are rarely a random sample. Late mail, provisional ballots and specific counties can break very differently from the early count.</li>
       <li>This is a what-if calculator, not a forecast. It doesn’t predict who will win.</li>
     </ul>
   </footer>
 </div>
 
-<button type="button" class="peek" id="peek" aria-label="Jump to your scenario"></button>
 
 <script type="module">
 import { clamp, num, sum, rank, counted as countedOf, project as projectOf, breakEven,
-  sharesFromCounted, rebalance, toPct, defaults, encodeState, decodeState, defaultShareFor, MAX_CANDS, MAX_BATCHES } from './lead.js';
+  sharesFromCounted, rebalance, toPct, defaults, encodeState, decodeState, defaultShareFor, MAX_CANDS, MAX_BATCHES,
+  UNC_OPTIONS, DEFAULT_UNC } from './lead.js';
 
 const COLORS = ['--c0','--c1','--c2','--c3','--c4','--c5'];
 const col = i => `var(${COLORS[i % COLORS.length]})`;
@@ -230,8 +245,6 @@ function save(){
 
 let state = decodeState(location.hash) || defaults();
 
-// The break-even range assumes % counted could be off by this many points either way.
-const UNCERTAINTY = 3;
 const counted = () => countedOf(state);
 const project = pIn => projectOf({ v: counted(), pIn, shares: state.cands.map(c => c.share), batches: state.batches });
 const setShares = arr => state.cands.forEach((c,i) => c.share = arr[i]);
@@ -244,7 +257,7 @@ let cur = null; // latest projection and the leader/runner-up the meter compares
 const cname = i => state.cands[i].name || `Candidate ${i+1}`;
 
 function buildRows(){
-  document.querySelectorAll('.seg button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.mode === state.mode)));
+  document.querySelectorAll('#modeSeg button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.mode === state.mode)));
   $('#totalField').hidden = state.mode !== 'pct';
   $('#total').value = state.total ? fmt(state.total) : '';
   const list = $('#cands'); list.innerHTML = ''; rowRefs = [];
@@ -304,7 +317,7 @@ function buildBatches(){
       <div class="blean"></div>`;
     const lab = el.querySelector('.blabel'), vot = el.querySelector('.bvotes'), ins = [...el.querySelectorAll('.bs input')];
     lab.addEventListener('input', () => { bt.label = lab.value; save(); });
-    vot.addEventListener('input', () => { bt.votes = num(vot.value); compute(); });
+    vot.addEventListener('input', () => { bt.votes = num(vot.value); syncBatchSum(); compute(); });
     vot.addEventListener('blur', () => { if(bt.votes) vot.value = fmt(bt.votes); });
     const sync = () => ins.forEach((inp,i) => inp.value = +bt.shares[i].toFixed(1));
     ins.forEach((inp,i) => {
@@ -318,6 +331,11 @@ function buildBatches(){
     batchRefs.push({ lean: el.querySelector('.blean') });
   });
   $('#addBatch').hidden = state.batches.length >= MAX_BATCHES;
+  syncBatchSum();
+}
+function syncBatchSum(){
+  const n = state.batches.length, votes = sum(state.batches.map(b => b.votes || 0));
+  $('#batchSum').textContent = !n ? 'optional' : `${n} batch${n > 1 ? 'es' : ''}` + (votes ? ` · ${fmt(votes)} votes` : '');
 }
 function syncShares(){
   state.cands.forEach((c,i) => {
@@ -364,7 +382,6 @@ function compute(){
     $('#headline').textContent = 'Enter the count so far';
     $('#sub').textContent = '';
     $('#needWrap').hidden = true; cur = null;
-    $('#peek').innerHTML = '<b>Lead Check</b><span>Enter the count so far</span>';
     batchRefs.forEach(r => r.lean.textContent = '');
     save(); return;
   }
@@ -411,17 +428,18 @@ function compute(){
 
   // Range from uncertainty in % counted
   let lo = null, hi = null;
-  {
-    const pLo = clamp(state.pctIn - UNCERTAINTY, 1, 100), pHi = clamp(state.pctIn + UNCERTAINTY, 1, 100);
+  const U = state.unc;
+  if(U > 0){
+    const pLo = clamp(state.pctIn - U, 1, 100), pHi = clamp(state.pctIn + U, 1, 100);
     lo = breakEven(project(pLo), a, b);  // more left → lower bar
     hi = breakEven(project(pHi), a, b);
     const reach = n => isFinite(n) && n <= p2 + 1e-9;
     $('#rangeText').textContent = !reach(lo) && !reach(hi)
-      ? `Even if the ${state.pctIn}% counted estimate is off by ${UNCERTAINTY} points (${pLo}–${pHi}%), ${names[b]} can’t catch up.`
+      ? `Even if the ${state.pctIn}% counted estimate is off by ${U} points (${pLo}–${pHi}%), ${names[b]} can’t catch up.`
       : needLabel(lo) === needLabel(hi)
-      ? `Even if the ${state.pctIn}% counted estimate is off by ${UNCERTAINTY} points (${pLo}–${pHi}%), ${names[b]} still needs ${needLabel(lo)}` + (P.B ? ' (your batches cover what’s left).' : '.')
-      : `If the ${state.pctIn}% counted estimate is off by ${UNCERTAINTY} points either way (${pLo}–${pHi}%), ${names[b]} needs between ${needLabel(lo)} and ${needLabel(hi)}.`;
-  }
+      ? `Even if the ${state.pctIn}% counted estimate is off by ${U} points (${pLo}–${pHi}%), ${names[b]} still needs ${needLabel(lo)}` + (P.B ? ' (your batches cover what’s left).' : '.')
+      : `If the ${state.pctIn}% counted estimate is off by ${U} points either way (${pLo}–${pHi}%), ${names[b]} needs between ${needLabel(lo)} and ${needLabel(hi)}.`;
+  } else $('#rangeText').textContent = '';
 
   // Meter: x = runner-up's share of ALL remaining votes
   const X = v => clamp(v,0,1) * 100;
@@ -457,14 +475,11 @@ function compute(){
   $('#pinHint').textContent = canDrag
     ? `Drag the white dot to change how much of what’s left goes to ${names[b]}.`
     : 'Your batches cover everything left, so edit them to change the scenario.';
-
-  $('#peek').innerHTML = `<b>${esc(names[w])} by ${fmt(margin)} (${mPts.toFixed(1)} pts)</b><span>` +
-    (isFinite(need) && need <= p2 ? `${esc(names[b])} needs ${pct(need)} of what’s left` : `${esc(names[b])} can’t catch up in this scenario`) + '</span>';
   save();
 }
 
 // Static controls
-document.querySelectorAll('.seg button').forEach(btn => btn.addEventListener('click', () => {
+document.querySelectorAll('#modeSeg button').forEach(btn => btn.addEventListener('click', () => {
   const mode = btn.dataset.mode;
   if(mode === state.mode) return;
   const v = counted(); const C = sum(v);
@@ -522,12 +537,15 @@ mw.addEventListener('pointermove', e => { if(mw.classList.contains('drag')) setP
 ['pointerup','pointercancel','lostpointercapture'].forEach(ev => mw.addEventListener(ev, () => mw.classList.remove('drag')));
 $('#pinRange').addEventListener('input', e => setPin(+e.target.value / 100));
 
-// Phones: a compact summary slides in at the top while the scenario card is off screen.
-let resultVisible = true;
-const updatePeek = () => document.body.classList.toggle('peeking', !resultVisible && scrollY > 120);
-new IntersectionObserver(([en]) => { resultVisible = en.isIntersecting; updatePeek(); }, { threshold: 0.15 }).observe($('#result'));
-addEventListener('scroll', updatePeek, { passive: true });
-$('#peek').addEventListener('click', () => $('#result').scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' }));
+// Advanced: uncertainty on % counted. Most people never open this.
+function syncUnc(){
+  $('#uncSeg').innerHTML = UNC_OPTIONS.map(u =>
+    `<button type="button" data-unc="${u}" aria-pressed="${u === state.unc}">${u ? '± ' + u : 'Exact'}</button>`).join('');
+}
+$('#uncSeg').addEventListener('click', e => {
+  const btn = e.target.closest('[data-unc]'); if(!btn) return;
+  state.unc = +btn.dataset.unc; syncUnc(); compute();
+});
 
 $('#matchCurrent').addEventListener('click', () => { matchCurrent(); syncShares(); compute(); });
 $('#evenSplit').addEventListener('click', () => { state.cands.forEach(c => c.share = 100/state.cands.length); syncShares(); compute(); });
@@ -542,6 +560,9 @@ $('#share').addEventListener('click', async e => {
 
 function init(){
   if(state.cands.every(c => !c.share)) matchCurrent();
+  $('#batchBox').open = state.batches.length > 0;
+  $('#advBox').open = state.unc !== DEFAULT_UNC;
+  syncUnc();
   pr.value = state.pctIn; pi.value = state.pctIn;
   buildRows(); compute();
 }

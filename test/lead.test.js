@@ -241,3 +241,19 @@ describe('defaultShareFor (dragging the scenario marker)', () => {
     expect(defaultShareFor(P, 1, 0.5)).toBeNull();
   });
 });
+
+describe('uncertainty in URL state', () => {
+  const withUnc = unc => decodeState(encodeState({ ...defaults(), unc })).unc;
+  it('defaults to ±3', () => {
+    expect(defaults().unc).toBe(3);
+    expect(decodeState(encodeState({ cands: defaults().cands })).unc).toBe(3);
+  });
+  it('keeps an allowed choice, including Exact (0)', () => {
+    expect(withUnc(10)).toBe(10);
+    expect(withUnc(0)).toBe(0);
+  });
+  it('falls back to the default for anything else', () => {
+    expect(withUnc(7)).toBe(3);
+    expect(withUnc('5')).toBe(3);
+  });
+});
