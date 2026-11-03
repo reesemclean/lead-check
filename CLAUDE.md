@@ -14,7 +14,7 @@ Static single-page app (`public/index.html`, no build step), deployed to Cloudfl
 `npm run dev` (or `python3 -m http.server -d public`).
 
 ## Core model
-- Inputs: votes counted per candidate (or total + %), estimated % of expected vote counted, uncertainty (± pts), and each candidate's share of the *remaining* vote.
+- Inputs: votes counted per candidate (or total + %), estimated % of expected vote counted, uncertainty (± pts, a chip next to the % box that cycles Exact/±2/±5/±10), and each candidate's share of the *remaining* vote.
 - Remaining votes `R = C / pIn - C`, where `C` is the sum of counted votes.
 - Final for candidate i: `v_i + R * s_i` (shares normalized to 1).
 - **Batches** (optional, max 8): known chunks of the remaining vote, `{label, votes, shares}`, each with its own split. They are carved out of the estimated `R`; the rest (`R - Σbatches`) goes at the default slider shares. If batches exceed the estimate, they become the whole remaining vote (the UI says so). `s_i` is then each candidate's *effective* share of all remaining votes.
