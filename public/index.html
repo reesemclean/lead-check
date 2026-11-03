@@ -371,9 +371,8 @@ function compute(){
   const order = rank(P.f);
   const w = order[0], r = order[1];
   const margin = P.f[w] - P.f[r], mPts = margin / P.T * 100;
-  const tight = mPts < 0.5;
   $('#headline').textContent = `${names[w]} finishes ahead by ${fmt(margin)} votes`;
-  $('#sub').textContent = `${mPts.toFixed(2)} pts of ~${fmt(P.T)} expected votes` + (tight ? ' — razor-thin, recount territory in many states' : '');
+  $('#sub').textContent = `${mPts.toFixed(2)} pts of ~${fmt(P.T)} expected votes`;
 
   // Break-even for the current runner-up vs current leader
   const byCount = rank(P.v);
