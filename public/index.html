@@ -40,6 +40,8 @@ header p{margin:0;color:var(--muted);max-width:60ch}
 .step h2{font-size:17px;margin:0}
 .muted{color:var(--muted)} .small{font-size:13px}
 input,button,select{font:inherit;color:inherit}
+/* iOS Safari zooms into any focused field under 16px; keep text fields at 16px. */
+input:not([type=range]),select,textarea{font-size:16px}
 input[type=text],input:not([type]),select{background:var(--surface-2);border:1px solid transparent;border-radius:10px;padding:9px 10px;width:100%;min-width:0}
 input:focus,select:focus{outline:none;border-color:var(--ink)}
 button{cursor:pointer;border:1px solid var(--border);background:var(--surface);border-radius:999px;padding:7px 14px;font-size:14px}
@@ -49,6 +51,7 @@ button.primary{background:var(--ink);color:var(--ink-text);border-color:var(--in
 .seg button{border:0;background:transparent;padding:5px 14px}
 .seg button[aria-pressed=true]{background:var(--surface);box-shadow:0 1px 2px rgba(0,0,0,.12)}
 .cand{display:grid;grid-template-columns:10px 1fr 1fr 28px;gap:8px;align-items:center;margin-bottom:12px}
+@media (max-width:519px){.cand{grid-template-columns:10px minmax(0,.85fr) minmax(0,1.15fr) 28px}.cand .unit.v{display:none}.cand .num input.val.v{padding-right:10px}}
 .cand .sofar{grid-column:2 / 4;font-size:12px;color:var(--muted);margin:-2px 0 0}
 .dot{width:10px;height:10px;border-radius:50%}
 .num{position:relative}
@@ -109,7 +112,7 @@ footer{margin-top:28px;color:var(--muted);font-size:13px;max-width:70ch}
 footer h3{color:var(--text);font-size:14px;margin:0 0 6px}
 footer ul{margin:0;padding-left:18px}
 .batch{border:1px solid var(--border);border-radius:10px;padding:10px;margin-bottom:10px}
-.bhead{display:grid;grid-template-columns:1fr 136px 28px;gap:8px;align-items:center}
+.bhead{display:grid;grid-template-columns:minmax(0,1fr) 160px 28px;gap:8px;align-items:center}
 @media (max-width:519px){.bhead{grid-template-columns:1fr 28px;grid-template-areas:"l x" "v v"}.bhead .blabel{grid-area:l}.bhead .num{grid-area:v}.bhead .x{grid-area:x}}
 .bshares{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:6px 10px;margin-top:8px}
 .bs{display:grid;grid-template-columns:10px 1fr 72px;gap:6px;align-items:center;font-size:13px;min-width:0}
@@ -269,8 +272,8 @@ function buildRows(){
     row.className = 'cand';
     row.innerHTML = `<span class="dot" style="background:${col(i)}"></span>
       <input class="name" aria-label="Candidate ${i+1} name" value="${esc(c.name)}" maxlength="40">
-      <div class="num"><input class="val" inputmode="decimal" aria-label="${isVotes?'Votes':'Percent'} for candidate ${i+1}"
-        value="${isVotes ? (c.votes ? fmt(c.votes) : '') : (c.pct || '')}"><span class="unit">${isVotes?'votes':'%'}</span></div>
+      <div class="num"><input class="val${isVotes?' v':''}" inputmode="decimal" aria-label="${isVotes?'Votes':'Percent'} for candidate ${i+1}"
+        value="${isVotes ? (c.votes ? fmt(c.votes) : '') : (c.pct || '')}"><span class="unit${isVotes?' v':''}">${isVotes?'votes':'%'}</span></div>
       ${state.cands.length > 2 ? `<button type="button" class="x" aria-label="Remove candidate ${i+1}">×</button>` : '<span></span>'}
       <span class="sofar"></span>`;
     const nameEl = row.querySelector('.name'), valEl = row.querySelector('.val');
