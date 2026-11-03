@@ -102,7 +102,7 @@ export const toPct = shares => normalize(shares).map(x => x * 100);
 
 export function defaults() {
   return {
-    mode: 'votes', total: 0, pctIn: 78, unc: 5, cands: [
+    mode: 'votes', total: 0, pctIn: 78, cands: [
       { name: 'Candidate A', votes: 412305, pct: 0, share: 0 },
       { name: 'Candidate B', votes: 398770, pct: 0, share: 0 }
     ],
@@ -124,7 +124,6 @@ export function decodeState(hash) {
       mode: s.mode === 'pct' ? 'pct' : 'votes',
       total: num(s.total),
       pctIn: clamp(num(s.pctIn) || 78, 1, 100),
-      unc: num(s.unc),
       cands: s.cands.slice(0, MAX_CANDS).map(c => ({
         name: String(c?.name || '').slice(0, 40), votes: num(c?.votes), pct: num(c?.pct), share: num(c?.share)
       })),

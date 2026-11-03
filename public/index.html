@@ -59,10 +59,8 @@ button.primary{background:var(--ink);color:var(--ink-text);border-color:var(--in
 .field{display:grid;gap:6px;margin-bottom:12px}
 .field label{font-size:13px;color:var(--muted)}
 input[type=range]{width:100%;accent-color:var(--ink)}
-.pctin{display:grid;grid-template-columns:1fr 84px auto;gap:8px;align-items:center}
-.chip{padding:8px 12px;white-space:nowrap;font-size:14px;min-width:72px}
-.chip small{color:var(--muted);font-size:12px}
-.stat{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:10px 16px;background:var(--surface-2);border-radius:10px;padding:10px 12px;font-size:14px}
+.pctin{display:grid;grid-template-columns:1fr 92px;gap:10px;align-items:center}
+.stat{display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:10px 12px;background:var(--surface-2);border-radius:10px;padding:10px 12px;font-size:14px}
 .stat > .muted{grid-column:1 / -1}
 .stat div span{display:block;font-size:12px;color:var(--muted)}
 .share{padding:10px 0;border-top:1px solid var(--border)}
@@ -160,7 +158,6 @@ body.peeking .peek{transform:none;visibility:visible}
           <div class="pctin">
             <input type="range" id="pctInRange" min="1" max="100" step="0.5">
             <div class="num"><input id="pctIn" inputmode="decimal" aria-label="Percent counted"><span class="unit">%</span></div>
-            <button type="button" class="chip" id="unc" title="How far off the % counted estimate might be. Tap to change."></button>
           </div>
         </div>
         <div class="stat" id="leftStat"></div>
@@ -207,7 +204,7 @@ body.peeking .peek{transform:none;visibility:visible}
   <footer>
     <h3>Read this before trusting the math</h3>
     <ul>
-      <li>“Percent counted” is an estimate of total turnout, not a hard number. Use the ± button next to it to see how much that matters.</li>
+      <li>“Percent counted” is an estimate of total turnout, not a hard number. The range assumes it could be off by 3 points either way; early in the night it can miss by more, so try dragging it.</li>
       <li>Uncounted votes are rarely a random sample. Late mail, provisional ballots and specific counties can break very differently from the early count.</li>
       <li>This is a what-if calculator, not a forecast. It doesn’t predict who will win.</li>
     </ul>
@@ -233,6 +230,8 @@ function save(){
 
 let state = decodeState(location.hash) || defaults();
 
+// The break-even range assumes % counted could be off by this many points either way.
+const UNCERTAINTY = 3;
 const counted = () => countedOf(state);
 const project = pIn => projectOf({ v: counted(), pIn, shares: state.cands.map(c => c.share), batches: state.batches });
 const setShares = arr => state.cands.forEach((c,i) => c.share = arr[i]);
@@ -349,7 +348,7 @@ function compute(){
   $('#leftStat').innerHTML = !P.C
     ? `<div class="muted">Enter the count to see what’s left.</div>`
     : `<div><span>Counted</span>${fmt(P.C)}</div><div><span>Est. remaining</span>${fmt(P.R)}</div>` +
-      (P.B ? `<div><span>In batches</span>${fmt(P.B)}</div><div><span>Everything else</span>${fmt(P.rest)}</div>` : '') +
+      (P.B ? `<div><span>In batches</span>${fmt(P.B)}</div><div><span>The rest</span>${fmt(P.rest)}</div>` : '') +
       `<div><span>Est. total</span>${fmt(P.T)}</div>` +
       (P.over ? `<div class="note">Your batches add up to more than the ${fmt(P.est)} votes this % counted implies, so they’re treated as all that’s left (the count would be ${(P.C/P.T*100).toFixed(1)}% complete).</div>` : '');
   $('#sharesNote').innerHTML = P.B
@@ -412,17 +411,17 @@ function compute(){
 
   // Range from uncertainty in % counted
   let lo = null, hi = null;
-  if(state.unc > 0){
-    const pLo = clamp(state.pctIn - state.unc, 1, 100), pHi = clamp(state.pctIn + state.unc, 1, 100);
+  {
+    const pLo = clamp(state.pctIn - UNCERTAINTY, 1, 100), pHi = clamp(state.pctIn + UNCERTAINTY, 1, 100);
     lo = breakEven(project(pLo), a, b);  // more left → lower bar
     hi = breakEven(project(pHi), a, b);
     const reach = n => isFinite(n) && n <= p2 + 1e-9;
     $('#rangeText').textContent = !reach(lo) && !reach(hi)
-      ? `Even if the count is really ${pLo}–${pHi}% complete, ${names[b]} can’t catch up.`
+      ? `Even if the ${state.pctIn}% counted estimate is off by ${UNCERTAINTY} points (${pLo}–${pHi}%), ${names[b]} can’t catch up.`
       : needLabel(lo) === needLabel(hi)
-      ? `Even if the count is really ${pLo}–${pHi}% complete, ${names[b]} still needs ${needLabel(lo)}` + (P.B ? ' (your batches cover what’s left).' : '.')
-      : `If the count is really ${pLo}–${pHi}% complete, ${names[b]} needs between ${needLabel(lo)} and ${needLabel(hi)}.`;
-  } else $('#rangeText').textContent = '';
+      ? `Even if the ${state.pctIn}% counted estimate is off by ${UNCERTAINTY} points (${pLo}–${pHi}%), ${names[b]} still needs ${needLabel(lo)}` + (P.B ? ' (your batches cover what’s left).' : '.')
+      : `If the ${state.pctIn}% counted estimate is off by ${UNCERTAINTY} points either way (${pLo}–${pHi}%), ${names[b]} needs between ${needLabel(lo)} and ${needLabel(hi)}.`;
+  }
 
   // Meter: x = runner-up's share of ALL remaining votes
   const X = v => clamp(v,0,1) * 100;
@@ -494,13 +493,7 @@ function setPctIn(v, from){
 }
 pr.addEventListener('input', () => setPctIn(+pr.value, 'range'));
 pi.addEventListener('input', () => { if(pi.value !== '') setPctIn(num(pi.value), 'num'); });
-const UNC = [0, 2, 5, 10];
-function syncUnc(){
-  const u = $('#unc');
-  u.innerHTML = state.unc ? `± ${state.unc} <small>pts</small>` : 'Exact';
-  u.setAttribute('aria-label', `Uncertainty in percent counted: ${state.unc ? 'plus or minus ' + state.unc + ' points' : 'exact'}. Activate to change.`);
-}
-$('#unc').addEventListener('click', () => { state.unc = UNC[(UNC.indexOf(state.unc) + 1) % UNC.length]; syncUnc(); compute(); });
+
 $('#addBatch').addEventListener('click', () => {
   if(state.batches.length >= MAX_BATCHES) return;
   state.batches.push({ label:'', votes:0, shares: toPct(state.cands.map(c => c.share)) });
@@ -550,8 +543,6 @@ $('#share').addEventListener('click', async e => {
 function init(){
   if(state.cands.every(c => !c.share)) matchCurrent();
   pr.value = state.pctIn; pi.value = state.pctIn;
-  if(!UNC.includes(state.unc)) state.unc = 5;
-  syncUnc();
   buildRows(); compute();
 }
 init();
