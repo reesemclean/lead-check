@@ -35,9 +35,9 @@ Static single-page app (`public/index.html`, no build step), deployed to Cloudfl
 2. Batches: optional margin entry ("B +8") as an alternative to typing each split. The split inputs show the lean today.
 
 ## Deploy
-Cloudflare Pages project `lead-check`, Git-connected to `reesemclean/lead-check`.
-- Every push to `main` deploys to production: https://enough.jibble.dev (also https://lead-check.pages.dev)
+Cloudflare Pages project `enough`, Git-connected to `reesemclean/lead-check`.
+- Every push to `main` deploys to production: https://enough.jibble.dev (fallback: https://enough-41u.pages.dev)
 - `jibble.dev` is the owner's playground domain (Cloudflare Registrar, auto-renew off, expires 2027-11-03). Each project gets its own subdomain: a Pages custom domain plus a proxied CNAME `<name>` → `<project>.pages.dev` in the `jibble.dev` zone.
 - Pushes to other branches and PRs get preview URLs.
 - Build settings: no build command, output directory `public`. Only `public/` is served.
-- Manual fallback: `npx wrangler pages deploy public --project-name=lead-check`
+- Manual fallback: `npx wrangler pages deploy public --project-name=enough`
