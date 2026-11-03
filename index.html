@@ -1,0 +1,478 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Lead Check</title>
+<meta name="description" content="Is that lead big enough? Enter the current count and simulate how the uncounted vote could break.">
+<style>
+:root{
+  --bg:#f5f4ef; --surface:#ffffff; --surface-2:#eeede7; --text:#1a1a19; --muted:#6a6963; --border:#dddbd3;
+  --ink:#1a1a19; --ink-text:#ffffff;
+  --c0:#0e7c79; --c1:#c0660f; --c2:#6a4fb3; --c3:#5a7a1e; --c4:#b03a5b; --c5:#3a6da8;
+  --hatch:#d9d7cf; --radius:14px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#111110; --surface:#1b1b1a; --surface-2:#262523; --text:#efeee8; --muted:#9d9b94; --border:#33322e;
+    --ink:#efeee8; --ink-text:#111110;
+    --c0:#3db7b3; --c1:#e8984a; --c2:#a18ae6; --c3:#9cc25a; --c4:#e57896; --c5:#7aa8e0; --hatch:#3a3935;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#111110; --surface:#1b1b1a; --surface-2:#262523; --text:#efeee8; --muted:#9d9b94; --border:#33322e;
+  --ink:#efeee8; --ink-text:#111110;
+  --c0:#3db7b3; --c1:#e8984a; --c2:#a18ae6; --c3:#9cc25a; --c4:#e57896; --c5:#7aa8e0; --hatch:#3a3935;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--text);font:15px/1.45 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-variant-numeric:tabular-nums;padding-bottom:84px}
+@media (min-width:900px){body{padding-bottom:0}}
+.wrap{max-width:1080px;margin:0 auto;padding:24px 16px 48px}
+header h1{font-size:28px;letter-spacing:-.02em;margin:0 0 4px}
+header p{margin:0;color:var(--muted);max-width:60ch}
+.grid{display:grid;gap:16px;margin-top:20px}
+@media (min-width:900px){.grid{grid-template-columns:1fr 1fr;align-items:start}.result{position:sticky;top:16px}}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px}
+.card + .card{margin-top:16px}
+.step{display:flex;align-items:baseline;gap:10px;margin:0 0 12px}
+.step b{font-size:12px;color:var(--muted);font-weight:600;letter-spacing:.06em;text-transform:uppercase}
+.step h2{font-size:17px;margin:0}
+.muted{color:var(--muted)} .small{font-size:13px}
+input,button,select{font:inherit;color:inherit}
+input[type=text],input:not([type]),select{background:var(--surface-2);border:1px solid transparent;border-radius:10px;padding:9px 10px;width:100%;min-width:0}
+input:focus,select:focus{outline:none;border-color:var(--ink)}
+button{cursor:pointer;border:1px solid var(--border);background:var(--surface);border-radius:999px;padding:7px 14px;font-size:14px}
+button:hover{border-color:var(--ink)}
+button.primary{background:var(--ink);color:var(--ink-text);border-color:var(--ink)}
+.seg{display:inline-flex;background:var(--surface-2);border-radius:999px;padding:3px;margin-bottom:12px}
+.seg button{border:0;background:transparent;padding:5px 14px}
+.seg button[aria-pressed=true]{background:var(--surface);box-shadow:0 1px 2px rgba(0,0,0,.12)}
+.cand{display:grid;grid-template-columns:10px 1fr 1fr 28px;gap:8px;align-items:center;margin-bottom:8px}
+.cand .sofar{grid-column:2 / 4;font-size:12px;color:var(--muted);margin:-4px 0 4px}
+.dot{width:10px;height:10px;border-radius:50%}
+.num{position:relative}
+.num input{padding-right:48px;text-align:right}
+.num .unit{position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:12px;color:var(--muted);pointer-events:none}
+.x{width:28px;height:28px;padding:0;border-radius:50%;line-height:1}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.field{display:grid;gap:6px;margin-bottom:12px}
+.field label{font-size:13px;color:var(--muted)}
+input[type=range]{width:100%;accent-color:var(--ink)}
+.pctin{display:grid;grid-template-columns:1fr 92px;gap:10px;align-items:center}
+.stat{display:flex;gap:16px;flex-wrap:wrap;background:var(--surface-2);border-radius:10px;padding:10px 12px;font-size:14px}
+.stat div span{display:block;font-size:12px;color:var(--muted)}
+.share{display:grid;grid-template-columns:1fr 64px;gap:4px 10px;align-items:center;margin-bottom:10px}
+.share .lbl{display:flex;align-items:center;gap:8px;font-size:14px}
+.share output{text-align:right;font-weight:600}
+.share input{grid-column:1 / -1}
+.warn{color:var(--c1);font-size:13px;margin:4px 0 0}
+.eyebrow{font-size:12px;color:var(--muted);font-weight:600;letter-spacing:.06em;text-transform:uppercase}
+#headline{font-size:24px;letter-spacing:-.02em;margin:4px 0 2px;line-height:1.2}
+.need{border-top:1px solid var(--border);margin-top:16px;padding-top:14px}
+#needText{font-size:16px}
+#needText b{font-size:20px}
+.meter{position:relative;height:34px;margin:30px 0 30px;border-radius:8px;overflow:visible}
+.zone{position:absolute;top:0;bottom:0}
+.zone.out{background:repeating-linear-gradient(45deg,var(--hatch) 0 4px,transparent 4px 8px);border-radius:0 8px 8px 0}
+.band{position:absolute;top:-4px;bottom:-4px;background:var(--text);opacity:.12;border-radius:4px}
+.mk{position:absolute;top:-6px;bottom:-6px;width:2px;background:var(--text);transform:translateX(-1px)}
+.mk span{position:absolute;white-space:nowrap;font-size:11px;font-weight:600;transform:translateX(-50%);left:1px}
+.mk.top span{bottom:100%;margin-bottom:2px}
+.mk.bot span{top:100%;margin-top:2px}
+.mk.dash{background:none;border-left:2px dashed var(--text)}
+.pin{position:absolute;top:50%;width:16px;height:16px;border-radius:50%;background:var(--surface);border:3px solid var(--text);transform:translate(-50%,-50%)}
+.axis{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-top:-22px}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin-top:10px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+table{width:100%;border-collapse:collapse;margin-top:16px;font-size:14px}
+th{font-size:12px;color:var(--muted);font-weight:600;text-align:right;padding:4px 0}
+th:first-child,td:first-child{text-align:left}
+td{text-align:right;padding:8px 0 2px}
+tr.bar td{padding:0 0 8px}
+.track{height:8px;border-radius:4px;background:var(--surface-2);display:flex;overflow:hidden}
+.track i{display:block;height:100%}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+footer{margin-top:28px;color:var(--muted);font-size:13px;max-width:70ch}
+footer h3{color:var(--text);font-size:14px;margin:0 0 6px}
+footer ul{margin:0;padding-left:18px}
+.mini{position:fixed;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--border);padding:10px 16px calc(10px + env(safe-area-inset-bottom));font-size:14px;z-index:5}
+.mini b{display:block;font-size:15px}
+@media (min-width:900px){.mini{display:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Lead Check</h1>
+    <p>Is that lead big enough? Enter the count so far and how much is left, then see what the trailing candidate needs from the uncounted vote.</p>
+  </header>
+
+  <div class="grid">
+    <div>
+      <section class="card">
+        <div class="step"><b>1</b><h2>The count so far</h2></div>
+        <div class="seg" role="group" aria-label="Entry mode">
+          <button type="button" data-mode="votes">Votes</button>
+          <button type="button" data-mode="pct">Percentages</button>
+        </div>
+        <div class="field" id="totalField">
+          <label for="total">Total votes counted</label>
+          <input id="total" inputmode="decimal">
+        </div>
+        <div id="cands"></div>
+        <p class="warn" id="pctWarn" hidden></p>
+        <div class="row" style="margin-top:6px"><button type="button" id="add">+ Add candidate</button></div>
+      </section>
+
+      <section class="card">
+        <div class="step"><b>2</b><h2>How much is left</h2></div>
+        <div class="field">
+          <label for="pctInRange">Estimated share of the expected vote counted</label>
+          <div class="pctin">
+            <input type="range" id="pctInRange" min="1" max="100" step="0.5">
+            <div class="num"><input id="pctIn" inputmode="decimal" aria-label="Percent counted"><span class="unit">%</span></div>
+          </div>
+        </div>
+        <div class="field">
+          <label for="unc">How sure is that estimate?</label>
+          <select id="unc">
+            <option value="0">Exact</option>
+            <option value="2">± 2 points</option>
+            <option value="5">± 5 points</option>
+            <option value="10">± 10 points</option>
+          </select>
+        </div>
+        <div class="stat" id="leftStat"></div>
+      </section>
+
+      <section class="card">
+        <div class="step"><b>3</b><h2>How the rest breaks</h2></div>
+        <p class="muted small" style="margin:-4px 0 12px">Share of the <em>remaining</em> votes each candidate wins. Sliders always total 100%.</p>
+        <div id="shares"></div>
+        <div class="row">
+          <button type="button" id="matchCurrent">Same as count so far</button>
+          <button type="button" id="evenSplit">Even split</button>
+        </div>
+      </section>
+    </div>
+
+    <section class="card result" id="result" aria-live="polite">
+      <div class="eyebrow">Your scenario</div>
+      <h2 id="headline"></h2>
+      <p id="sub" class="muted" style="margin:0"></p>
+      <div class="need" id="needWrap">
+        <div id="needText"></div>
+        <div class="meter" id="meter"></div>
+        <div class="axis"><span>0%</span><span>50%</span><span>100% of remaining</span></div>
+        <div class="legend" id="legend"></div>
+        <p id="rangeText" class="muted small" style="margin:10px 0 0"></p>
+      </div>
+      <table id="table"></table>
+      <div class="actions">
+        <button type="button" class="primary" id="share">Copy link to this scenario</button>
+        <button type="button" id="reset">Reset</button>
+      </div>
+    </section>
+  </div>
+
+  <footer>
+    <h3>Read this before trusting the math</h3>
+    <ul>
+      <li>“Percent counted” is an estimate of total turnout, not a hard number. Use the uncertainty setting.</li>
+      <li>Uncounted votes are rarely a random sample. Late mail, provisional ballots and specific counties can break very differently from the early count.</li>
+      <li>This is a what-if calculator, not a forecast. It doesn’t predict who will win.</li>
+    </ul>
+  </footer>
+</div>
+
+<div class="mini" id="mini"></div>
+
+<script>
+const COLORS = ['--c0','--c1','--c2','--c3','--c4','--c5'];
+const col = i => `var(${COLORS[i % COLORS.length]})`;
+const $ = s => document.querySelector(s);
+const clamp = (x,a,b) => Math.min(Math.max(x,a),b);
+const num = s => { const n = parseFloat(String(s).replace(/[^0-9.]/g,'')); return isFinite(n) ? n : 0; };
+const fmt = n => Math.round(n).toLocaleString();
+const pct = (x,d=1) => (x*100).toFixed(d) + '%';
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+function defaults(){
+  return { mode:'votes', total:0, pctIn:78, unc:5, cands:[
+    { name:'Candidate A', votes:412305, pct:0, share:0 },
+    { name:'Candidate B', votes:398770, pct:0, share:0 }
+  ]};
+}
+function load(){
+  try{
+    const m = location.hash.match(/s=([^&]+)/);
+    if(!m) return null;
+    const s = JSON.parse(decodeURIComponent(m[1]));
+    if(!s || !Array.isArray(s.cands) || s.cands.length < 2) return null;
+    s.cands = s.cands.slice(0,6).map(c => ({ name:String(c.name||'').slice(0,40), votes:num(c.votes), pct:num(c.pct), share:num(c.share) }));
+    s.mode = s.mode === 'pct' ? 'pct' : 'votes';
+    s.total = num(s.total); s.pctIn = clamp(num(s.pctIn)||78, 1, 100); s.unc = num(s.unc);
+    return s;
+  }catch(e){ return null; }
+}
+function save(){
+  try{ history.replaceState(null,'','#s=' + encodeURIComponent(JSON.stringify(state))); }catch(e){}
+}
+
+let state = load() || defaults();
+
+function counted(){
+  if(state.mode === 'votes') return state.cands.map(c => Math.max(0, c.votes));
+  return state.cands.map(c => state.total * Math.max(0, c.pct) / 100);
+}
+function shares(){
+  const w = state.cands.map(c => Math.max(0, c.share));
+  const sum = w.reduce((a,b)=>a+b,0);
+  return sum > 0 ? w.map(x => x/sum) : w.map(() => 1/w.length);
+}
+function project(pInPct){
+  const v = counted();
+  const C = v.reduce((a,b)=>a+b,0);
+  const p = clamp(pInPct, 0.1, 100) / 100;
+  const R = p >= 1 ? 0 : C/p - C;
+  const s = shares();
+  const f = v.map((x,i) => x + R*s[i]);
+  return { v, C, R, T: C+R, s, f };
+}
+// Fraction of ALL remaining votes the runner-up (b) needs to pass the leader (a),
+// holding every other candidate at their set share.
+function breakEven(P, a, b){
+  const lead = P.v[a] - P.v[b];
+  if(P.R <= 0) return lead > 0 ? Infinity : 0;
+  const p2 = P.s[a] + P.s[b];
+  return (P.R*p2 + lead) / (2*P.R);
+}
+function matchCurrent(){
+  const v = counted(); const C = v.reduce((a,b)=>a+b,0);
+  state.cands.forEach((c,i) => c.share = C > 0 ? v[i]/C*100 : 100/state.cands.length);
+}
+function setShare(i, val){
+  const n = state.cands.length;
+  val = clamp(val, 0, 100);
+  const others = state.cands.reduce((a,c,j) => j===i ? a : a + c.share, 0);
+  const rest = 100 - val;
+  state.cands.forEach((c,j) => {
+    if(j === i) c.share = val;
+    else c.share = others > 0 ? c.share * rest / others : rest/(n-1);
+  });
+}
+function normalizeShares(){
+  const sum = state.cands.reduce((a,c)=>a+c.share,0);
+  state.cands.forEach(c => c.share = sum > 0 ? c.share/sum*100 : 100/state.cands.length);
+}
+
+let rowRefs = [], shareRefs = [];
+
+function buildRows(){
+  document.querySelectorAll('.seg button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.mode === state.mode)));
+  $('#totalField').hidden = state.mode !== 'pct';
+  $('#total').value = state.total ? fmt(state.total) : '';
+  const list = $('#cands'); list.innerHTML = ''; rowRefs = [];
+  const sh = $('#shares'); sh.innerHTML = ''; shareRefs = [];
+  const isVotes = state.mode === 'votes';
+
+  state.cands.forEach((c,i) => {
+    const row = document.createElement('div');
+    row.className = 'cand';
+    row.innerHTML = `<span class="dot" style="background:${col(i)}"></span>
+      <input class="name" aria-label="Candidate ${i+1} name" value="${esc(c.name)}" maxlength="40">
+      <div class="num"><input class="val" inputmode="decimal" aria-label="${isVotes?'Votes':'Percent'} for candidate ${i+1}"
+        value="${isVotes ? (c.votes ? fmt(c.votes) : '') : (c.pct || '')}"><span class="unit">${isVotes?'votes':'%'}</span></div>
+      ${state.cands.length > 2 ? `<button type="button" class="x" aria-label="Remove candidate ${i+1}">×</button>` : '<span></span>'}
+      <span class="sofar"></span>`;
+    const nameEl = row.querySelector('.name'), valEl = row.querySelector('.val');
+    nameEl.addEventListener('input', () => { c.name = nameEl.value; shareRefs[i].lbl.textContent = c.name || `Candidate ${i+1}`; compute(); });
+    valEl.addEventListener('input', () => { if(isVotes) c.votes = num(valEl.value); else c.pct = num(valEl.value); compute(); });
+    valEl.addEventListener('blur', () => { if(isVotes && c.votes) valEl.value = fmt(c.votes); });
+    const x = row.querySelector('.x');
+    if(x) x.addEventListener('click', () => { state.cands.splice(i,1); normalizeShares(); buildRows(); compute(); });
+    list.appendChild(row);
+    rowRefs.push({ sofar: row.querySelector('.sofar') });
+
+    const srow = document.createElement('div');
+    srow.className = 'share';
+    srow.innerHTML = `<div class="lbl"><span class="dot" style="background:${col(i)}"></span><span></span></div>
+      <output></output>
+      <input type="range" min="0" max="100" step="0.1" aria-label="Share of remaining for candidate ${i+1}" style="accent-color:${col(i)}">`;
+    const lbl = srow.querySelector('.lbl span:last-child'), out = srow.querySelector('output'), rng = srow.querySelector('input');
+    lbl.textContent = c.name || `Candidate ${i+1}`;
+    rng.addEventListener('input', () => { setShare(i, +rng.value); syncShares(); compute(); });
+    sh.appendChild(srow);
+    shareRefs.push({ lbl, out, rng });
+  });
+  syncShares();
+}
+function syncShares(){
+  state.cands.forEach((c,i) => {
+    shareRefs[i].rng.value = c.share;
+    shareRefs[i].out.textContent = c.share.toFixed(1) + '%';
+  });
+}
+
+function needLabel(n){ return isFinite(n) && n <= 1 ? pct(n) : 'out of reach'; }
+
+function compute(){
+  const P = project(state.pctIn);
+  const names = state.cands.map((c,i) => c.name || `Candidate ${i+1}`);
+
+  // per-row "so far"
+  state.cands.forEach((c,i) => {
+    rowRefs[i].sofar.textContent = state.mode === 'votes'
+      ? (P.C ? pct(P.v[i]/P.C) + ' of counted' : '')
+      : (P.v[i] ? '≈ ' + fmt(P.v[i]) + ' votes' : '');
+  });
+  const pw = $('#pctWarn');
+  if(state.mode === 'pct'){
+    const sum = state.cands.reduce((a,c)=>a+c.pct,0);
+    pw.hidden = Math.abs(sum - 100) < 0.6 || sum === 0;
+    pw.textContent = `Percentages add up to ${sum.toFixed(1)}%. Add an “Other” row so they total 100%.`;
+  } else pw.hidden = true;
+
+  $('#leftStat').innerHTML = P.C
+    ? `<div><span>Counted</span>${fmt(P.C)}</div><div><span>Est. remaining</span>${fmt(P.R)}</div><div><span>Est. total</span>${fmt(P.T)}</div>`
+    : `<div class="muted">Enter the count to see what’s left.</div>`;
+
+  if(!P.C){
+    $('#headline').textContent = 'Enter the count so far';
+    $('#sub').textContent = '';
+    $('#needWrap').hidden = true; $('#table').innerHTML = '';
+    $('#mini').innerHTML = '<b>Lead Check</b>Enter the count so far';
+    save(); return;
+  }
+
+  // Projection headline
+  const order = P.f.map((x,i)=>i).sort((a,b)=>P.f[b]-P.f[a]);
+  const w = order[0], r = order[1];
+  const margin = P.f[w] - P.f[r], mPts = margin / P.T * 100;
+  const tight = mPts < 0.5;
+  $('#headline').textContent = `${names[w]} finishes ahead by ${fmt(margin)} votes`;
+  $('#sub').textContent = `${mPts.toFixed(2)} pts of ~${fmt(P.T)} expected votes` + (tight ? ' — razor-thin, recount territory in many states' : '');
+
+  // Break-even for the current runner-up vs current leader
+  const cur = P.v.map((x,i)=>i).sort((a,b)=>P.v[b]-P.v[a]);
+  const a = cur[0], b = cur[1];
+  const need = breakEven(P, a, b);
+  const p2 = P.s[a] + P.s[b];
+  const soFar = P.v[b] / P.C;
+  $('#needWrap').hidden = false;
+  let nt;
+  if(P.v[a] === P.v[b]){
+    nt = `${esc(names[a])} and ${esc(names[b])} are tied in the count so far.`;
+  } else if(!isFinite(need) || need > p2 + 1e-9){
+    nt = p2 >= 0.999
+      ? `${esc(names[b])} can’t catch up: they’d need more than every remaining vote.`
+      : `${esc(names[b])} can’t catch up here: they’d need <b>${needLabel(need)}</b> of what’s left, but only ${pct(p2)} isn’t going to other candidates.`;
+  } else {
+    const gap = (need - soFar) * 100;
+    nt = `${esc(names[b])} needs <b>${pct(need)}</b> of the remaining vote to overtake ${esc(names[a])}. ` +
+      (gap > 0
+        ? `That’s ${gap.toFixed(1)} pts better than the ${pct(soFar)} they’ve won so far.`
+        : `They’ve won ${pct(soFar)} so far, so their current pace would be enough.`);
+  }
+  $('#needText').innerHTML = nt;
+
+  // Range from uncertainty in % counted
+  let lo = null, hi = null;
+  if(state.unc > 0){
+    const pLo = clamp(state.pctIn - state.unc, 1, 100), pHi = clamp(state.pctIn + state.unc, 1, 100);
+    lo = breakEven(project(pLo), a, b);  // more left → lower bar
+    hi = breakEven(project(pHi), a, b);
+    $('#rangeText').textContent = `If the count is really ${pLo}–${pHi}% complete, ${names[b]} needs between ${needLabel(lo)} and ${needLabel(hi)}.`;
+  } else $('#rangeText').textContent = '';
+
+  // Meter: x = runner-up's share of ALL remaining votes
+  const X = v => clamp(v,0,1) * 100;
+  const ca = col(a), cb = col(b);
+  const nX = X(isFinite(need) ? need : 1), pX = X(p2);
+  let m = `<div class="zone" style="left:0;width:${Math.min(nX,pX)}%;background:${ca};opacity:.28;border-radius:8px 0 0 8px"></div>`;
+  if(nX < pX) m += `<div class="zone" style="left:${nX}%;width:${pX-nX}%;background:${cb};opacity:.28"></div>`;
+  if(pX < 100) m += `<div class="zone out" style="left:${pX}%;width:${100-pX}%"></div>`;
+  if(lo !== null){
+    const l = X(isFinite(lo)?lo:1), h = X(isFinite(hi)?hi:1);
+    if(h > l) m += `<div class="band" style="left:${l}%;width:${h-l}%"></div>`;
+  }
+  if(isFinite(need) && need <= 1) m += `<div class="mk top" style="left:${nX}%"><span>needs ${pct(need,1)}</span></div>`;
+  m += `<div class="mk dash bot" style="left:${X(soFar)}%"><span>so far ${pct(soFar,1)}</span></div>`;
+  m += `<div class="pin" style="left:${X(P.s[b])}%" title="Your scenario"></div>`;
+  $('#meter').innerHTML = m;
+  $('#legend').innerHTML =
+    `<span><i style="background:${ca};opacity:.5"></i>${esc(names[a])} holds on</span>` +
+    `<span><i style="background:${cb};opacity:.5"></i>${esc(names[b])} overtakes</span>` +
+    (pX < 100 ? `<span><i style="background:var(--hatch)"></i>going to others</span>` : '') +
+    `<span><i style="background:var(--surface);border:2px solid var(--text);border-radius:50%"></i>your scenario</span>`;
+
+  // Final table
+  const max = Math.max(...P.f);
+  let t = `<tr><th>Candidate</th><th>Counted</th><th>+ Remaining</th><th>Final</th></tr>`;
+  order.forEach(i => {
+    t += `<tr><td><span class="dot" style="display:inline-block;background:${col(i)};margin-right:6px"></span>${esc(names[i])}</td>
+      <td>${fmt(P.v[i])}</td><td>${fmt(P.R*P.s[i])}</td><td><b>${pct(P.f[i]/P.T)}</b></td></tr>
+      <tr class="bar"><td colspan="4"><div class="track">
+        <i style="width:${P.v[i]/max*100}%;background:${col(i)}"></i>
+        <i style="width:${P.R*P.s[i]/max*100}%;background:${col(i)};opacity:.4"></i>
+      </div></td></tr>`;
+  });
+  $('#table').innerHTML = t;
+
+  $('#mini').innerHTML = `<b>${esc(names[w])} by ${fmt(margin)} (${mPts.toFixed(1)} pts)</b>` +
+    (isFinite(need) && need <= p2 ? `${esc(names[b])} needs ${pct(need)} of what’s left` : `${esc(names[b])} can’t catch up in this scenario`);
+  save();
+}
+
+// Static controls
+document.querySelectorAll('.seg button').forEach(btn => btn.addEventListener('click', () => {
+  const mode = btn.dataset.mode;
+  if(mode === state.mode) return;
+  const v = counted(); const C = v.reduce((a,b)=>a+b,0);
+  if(mode === 'pct'){
+    state.total = Math.round(C);
+    state.cands.forEach((c,i) => c.pct = C ? +(v[i]/C*100).toFixed(2) : 0);
+  } else {
+    state.cands.forEach((c,i) => c.votes = Math.round(v[i]));
+  }
+  state.mode = mode; buildRows(); compute();
+}));
+$('#total').addEventListener('input', e => { state.total = num(e.target.value); compute(); });
+$('#total').addEventListener('blur', e => { if(state.total) e.target.value = fmt(state.total); });
+$('#add').addEventListener('click', () => {
+  if(state.cands.length >= 6) return;
+  state.cands.push({ name: state.cands.length === 2 ? 'Other' : `Candidate ${state.cands.length+1}`, votes:0, pct:0, share:0 });
+  normalizeShares(); buildRows(); compute();
+});
+const pr = $('#pctInRange'), pi = $('#pctIn');
+function setPctIn(v, from){
+  state.pctIn = clamp(v, 1, 100);
+  if(from !== 'range') pr.value = state.pctIn;
+  if(from !== 'num') pi.value = state.pctIn;
+  compute();
+}
+pr.addEventListener('input', () => setPctIn(+pr.value, 'range'));
+pi.addEventListener('input', () => { if(pi.value !== '') setPctIn(num(pi.value), 'num'); });
+$('#unc').addEventListener('change', e => { state.unc = +e.target.value; compute(); });
+$('#matchCurrent').addEventListener('click', () => { matchCurrent(); syncShares(); compute(); });
+$('#evenSplit').addEventListener('click', () => { state.cands.forEach(c => c.share = 100/state.cands.length); syncShares(); compute(); });
+$('#reset').addEventListener('click', () => { state = defaults(); matchCurrent(); init(); });
+$('#share').addEventListener('click', async e => {
+  save();
+  const btn = e.currentTarget, label = btn.textContent;
+  try{ await navigator.clipboard.writeText(location.href); btn.textContent = 'Link copied'; }
+  catch(err){ prompt('Copy this link:', location.href); }
+  setTimeout(() => btn.textContent = label, 1600);
+});
+
+function init(){
+  if(state.cands.every(c => !c.share)) matchCurrent();
+  pr.value = state.pctIn; pi.value = state.pctIn;
+  const u = $('#unc'); if(![...u.options].some(o => +o.value === state.unc)) state.unc = 5; u.value = state.unc;
+  buildRows(); compute();
+}
+init();
+</script>
+</body>
+</html>
