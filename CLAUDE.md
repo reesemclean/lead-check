@@ -33,10 +33,10 @@ Static single-page app (`public/index.html`, no build step), deployed to Cloudfl
 ## Next up
 1. OG/meta image so shared links preview well.
 2. Batches: optional margin entry ("B +8") as an alternative to typing each split. The split inputs show the lean today.
-3. Optional: Workers static assets via `wrangler.toml` instead of Pages.
 
 ## Deploy
-Cloudflare Pages, free plan. Either connect the GitHub repo in the dashboard (Framework preset: None, build command: empty, output directory: `public`), or upload directly:
-```
-npx wrangler pages deploy public --project-name=lead-check
-```
+Cloudflare Pages project `lead-check`, Git-connected to `reesemclean/lead-check`.
+- Every push to `main` deploys to production: https://lead-check.pages.dev
+- Pushes to other branches and PRs get preview URLs.
+- Build settings: no build command, output directory `public`. Only `public/` is served.
+- Manual fallback: `npx wrangler pages deploy public --project-name=lead-check`
