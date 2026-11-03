@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
   num, normalize, counted, remaining, project, breakEven, rank,
   sharesFromCounted, rebalance, toPct, defaults, encodeState, decodeState, sum
-} from '../lead.js';
+} from '../public/lead.js';
 
 const close = (a, b, eps = 1e-6) => expect(Math.abs(a - b)).toBeLessThan(eps);
 

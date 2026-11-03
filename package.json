@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "test": "vitest run",
-    "dev": "npx --yes serve -l 8788 ."
+    "dev": "npx --yes serve -l 8788 public"
   },
   "devDependencies": {
     "vitest": "^3.2.4"

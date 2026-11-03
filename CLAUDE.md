@@ -1,16 +1,17 @@
 # Lead Check
 
 Election-night what-if calculator: "Is that lead big enough given the % counted?"
-Static single-page app (`index.html`, no build step), deployed to Cloudflare Pages.
+Static single-page app (`public/index.html`, no build step), deployed to Cloudflare Pages.
 
 ## Files
-- `index.html`: markup, styles and UI code (`<script type="module">`).
-- `lead.js`: pure math and URL-state helpers, no DOM. All model changes go here, with tests.
+- `public/`: everything that gets deployed, and nothing else.
+  - `index.html`: markup, styles and UI code (`<script type="module">`).
+  - `lead.js`: pure math and URL-state helpers, no DOM. All model changes go here, with tests.
 - `test/lead.test.js`: Vitest. Run `npm test`.
 
 ## Local dev
 `index.html` imports `lead.js` as an ES module, so it must be served over HTTP (opening the file directly won't work):
-`npm run dev` (or `python3 -m http.server`).
+`npm run dev` (or `python3 -m http.server -d public`).
 
 ## Core model
 - Inputs: votes counted per candidate (or total + %), estimated % of expected vote counted, uncertainty (± pts), and each candidate's share of the *remaining* vote.
@@ -35,6 +36,7 @@ Static single-page app (`index.html`, no build step), deployed to Cloudflare Pag
 3. Optional: Workers static assets via `wrangler.toml` instead of Pages.
 
 ## Deploy
+Cloudflare Pages, free plan. Either connect the GitHub repo in the dashboard (Framework preset: None, build command: empty, output directory: `public`), or upload directly:
 ```
-npx wrangler pages deploy . --project-name=lead-check
+npx wrangler pages deploy public --project-name=lead-check
 ```
