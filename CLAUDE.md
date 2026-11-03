@@ -36,7 +36,8 @@ Static single-page app (`public/index.html`, no build step), deployed to Cloudfl
 
 ## Deploy
 Cloudflare Pages project `lead-check`, Git-connected to `reesemclean/lead-check`.
-- Every push to `main` deploys to production: https://lead-check.pages.dev
+- Every push to `main` deploys to production: https://lead-check.jibble.dev (also https://lead-check.pages.dev)
+- `jibble.dev` is the owner's playground domain (Cloudflare Registrar, auto-renew off, expires 2027-11-03). Each project gets its own subdomain: a Pages custom domain plus a proxied CNAME `<name>` → `<project>.pages.dev` in the `jibble.dev` zone.
 - Pushes to other branches and PRs get preview URLs.
 - Build settings: no build command, output directory `public`. Only `public/` is served.
 - Manual fallback: `npx wrangler pages deploy public --project-name=lead-check`
