@@ -27,8 +27,7 @@
 *{box-sizing:border-box}
 [hidden]{display:none!important}
 html,body{margin:0}
-body{background:var(--bg);color:var(--text);font:15px/1.45 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-variant-numeric:tabular-nums;padding-bottom:84px}
-@media (min-width:900px){body{padding-bottom:0}}
+body{background:var(--bg);color:var(--text);font:15px/1.45 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-variant-numeric:tabular-nums}
 .wrap{max-width:1080px;margin:0 auto;padding:24px 16px 48px}
 header h1{font-size:28px;letter-spacing:-.02em;margin:0 0 4px}
 header p{margin:0;color:var(--muted);max-width:60ch}
@@ -63,17 +62,29 @@ input[type=range]{width:100%;accent-color:var(--ink)}
 .pctin{display:grid;grid-template-columns:1fr 92px;gap:10px;align-items:center}
 .stat{display:flex;gap:16px;flex-wrap:wrap;background:var(--surface-2);border-radius:10px;padding:10px 12px;font-size:14px}
 .stat div span{display:block;font-size:12px;color:var(--muted)}
-.share{display:grid;grid-template-columns:1fr 64px;gap:4px 10px;align-items:center;margin-bottom:10px}
-.share .lbl{display:flex;align-items:center;gap:8px;font-size:14px}
-.share output{text-align:right;font-weight:600}
-.share input{grid-column:1 / -1}
+.share{padding:10px 0;border-top:1px solid var(--border)}
+.share:first-child{border-top:0}
+.share .top{display:flex;align-items:baseline;gap:8px}
+.share .lbl{display:flex;align-items:center;gap:8px;font-weight:600;min-width:0;flex:1}
+.share .lbl span:last-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.share .fin{font-weight:700;font-size:16px}
+.share .det{font-size:12px;color:var(--muted);margin:2px 0 4px 18px}
+.share .ctl{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;margin-left:18px}
+.share output{font-size:13px;color:var(--muted);white-space:nowrap}
+.share output b{color:var(--text)}
+.breaks{border-top:1px solid var(--border);margin-top:16px;padding-top:14px}
+.breaks h3{font-size:15px;margin:0}
 .warn{color:var(--c1);font-size:13px;margin:4px 0 0}
 .eyebrow{font-size:12px;color:var(--muted);font-weight:600;letter-spacing:.06em;text-transform:uppercase}
 #headline{font-size:24px;letter-spacing:-.02em;margin:4px 0 2px;line-height:1.2}
 .need{border-top:1px solid var(--border);margin-top:16px;padding-top:14px}
 #needText{font-size:16px}
 #needText b{font-size:20px}
-.meter{position:relative;height:34px;margin:30px 0 30px;border-radius:8px;overflow:visible}
+.meterwrap{position:relative;margin:30px 0 0;touch-action:pan-y;cursor:pointer;user-select:none;-webkit-user-select:none}
+.meterwrap.off{cursor:default}
+.meter{position:relative;height:34px;border-radius:8px;overflow:visible}
+.pinrange{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;pointer-events:none}
+.meterwrap:has(.pinrange:focus-visible) .pin{box-shadow:0 0 0 4px var(--surface),0 0 0 6px var(--text)}
 .zone{position:absolute;top:0;bottom:0}
 .zone.out{background:repeating-linear-gradient(45deg,var(--hatch) 0 4px,transparent 4px 8px);border-radius:0 8px 8px 0}
 .band{position:absolute;top:-4px;bottom:-4px;background:var(--text);opacity:.12;border-radius:4px}
@@ -82,17 +93,13 @@ input[type=range]{width:100%;accent-color:var(--ink)}
 .mk.top span{bottom:100%;margin-bottom:2px}
 .mk.bot span{top:100%;margin-top:2px}
 .mk.dash{background:none;border-left:2px dashed var(--text)}
-.pin{position:absolute;top:50%;width:16px;height:16px;border-radius:50%;background:var(--surface);border:3px solid var(--text);transform:translate(-50%,-50%)}
-.axis{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-top:-22px}
+.pin{position:absolute;top:50%;width:24px;height:24px;border-radius:50%;background:var(--surface);border:3px solid var(--text);transform:translate(-50%,-50%);box-shadow:0 1px 4px rgba(0,0,0,.25);cursor:grab}
+.meterwrap.drag .pin{cursor:grabbing;transform:translate(-50%,-50%) scale(1.15)}
+.meterwrap.off .pin{cursor:default}
+.axis{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-top:24px}
+.hint{font-size:12px;color:var(--muted);margin:6px 0 0}
 .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin-top:10px}
 .legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
-table{width:100%;border-collapse:collapse;margin-top:16px;font-size:14px}
-th{font-size:12px;color:var(--muted);font-weight:600;text-align:right;padding:4px 0}
-th:first-child,td:first-child{text-align:left}
-td{text-align:right;padding:8px 0 2px}
-tr.bar td{padding:0 0 8px}
-.track{height:8px;border-radius:4px;background:var(--surface-2);display:flex;overflow:hidden}
-.track i{display:block;height:100%}
 .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
 footer{margin-top:28px;color:var(--muted);font-size:13px;max-width:70ch}
 footer h3{color:var(--text);font-size:14px;margin:0 0 6px}
@@ -108,9 +115,12 @@ footer ul{margin:0;padding-left:18px}
 .bs .num input{padding-right:24px;padding-left:6px}
 .blean{font-size:12px;color:var(--muted);margin-top:6px}
 .stat .note{flex-basis:100%;font-size:13px;color:var(--c1)}
-.mini{position:fixed;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--border);padding:10px 16px calc(10px + env(safe-area-inset-bottom));font-size:14px;z-index:5}
-.mini b{display:block;font-size:15px}
-@media (min-width:900px){.mini{display:none}}
+.peek{position:fixed;left:0;right:0;top:0;z-index:5;display:block;width:100%;text-align:left;border:0;border-bottom:1px solid var(--border);border-radius:0;background:var(--surface);padding:10px 16px;padding-top:calc(10px + env(safe-area-inset-top));font-size:14px;box-shadow:0 2px 10px rgba(0,0,0,.08);transform:translateY(-110%);transition:transform .2s ease;visibility:hidden}
+.peek b{display:block;font-size:15px}
+.peek span{color:var(--muted)}
+body.peeking .peek{transform:none;visibility:visible}
+@media (min-width:900px){.peek{display:none}}
+@media (prefers-reduced-motion:reduce){.peek{transition:none}}
 </style>
 </head>
 <body>
@@ -156,16 +166,6 @@ footer ul{margin:0;padding-left:18px}
           </select>
         </div>
         <div class="stat" id="leftStat"></div>
-      </section>
-
-      <section class="card">
-        <div class="step"><b>3</b><h2>How the rest breaks</h2></div>
-        <p class="muted small" style="margin:-4px 0 12px" id="sharesNote"></p>
-        <div id="shares"></div>
-        <div class="row">
-          <button type="button" id="matchCurrent">Same as count so far</button>
-          <button type="button" id="evenSplit">Even split</button>
-        </div>
         <div class="sub">
           <h3>Known batches <span class="muted small" style="font-weight:400">optional</span></h3>
           <p class="muted small" style="margin:0 0 12px">If you know a chunk of the uncounted vote will break differently (late mail, a county, provisionals), add it here with its own split.</p>
@@ -181,12 +181,24 @@ footer ul{margin:0;padding-left:18px}
       <p id="sub" class="muted" style="margin:0"></p>
       <div class="need" id="needWrap">
         <div id="needText"></div>
-        <div class="meter" id="meter"></div>
+        <div class="meterwrap" id="meterWrap">
+          <div class="meter" id="meter"></div>
+          <input type="range" class="pinrange" id="pinRange" min="0" max="100" step="0.1">
+        </div>
         <div class="axis"><span>0%</span><span>50%</span><span>100% of remaining</span></div>
+        <p class="hint" id="pinHint"></p>
         <div class="legend" id="legend"></div>
         <p id="rangeText" class="muted small" style="margin:10px 0 0"></p>
       </div>
-      <table id="table"></table>
+      <div class="breaks">
+        <h3>How the rest breaks</h3>
+        <p class="muted small" style="margin:2px 0 4px" id="sharesNote"></p>
+        <div id="shares"></div>
+        <div class="row">
+          <button type="button" id="matchCurrent">Same as count so far</button>
+          <button type="button" id="evenSplit">Even split</button>
+        </div>
+      </div>
       <div class="actions">
         <button type="button" class="primary" id="share">Copy link to this scenario</button>
         <button type="button" id="reset">Reset</button>
@@ -204,11 +216,11 @@ footer ul{margin:0;padding-left:18px}
   </footer>
 </div>
 
-<div class="mini" id="mini"></div>
+<button type="button" class="peek" id="peek" aria-label="Jump to your scenario"></button>
 
 <script type="module">
 import { clamp, num, sum, rank, counted as countedOf, project as projectOf, breakEven,
-  sharesFromCounted, rebalance, toPct, defaults, encodeState, decodeState, MAX_CANDS, MAX_BATCHES } from './lead.js';
+  sharesFromCounted, rebalance, toPct, defaults, encodeState, decodeState, defaultShareFor, MAX_CANDS, MAX_BATCHES } from './lead.js';
 
 const COLORS = ['--c0','--c1','--c2','--c3','--c4','--c5'];
 const col = i => `var(${COLORS[i % COLORS.length]})`;
@@ -231,6 +243,7 @@ const setShare = (i, val) => setShares(rebalance(state.cands.map(c => c.share), 
 const normalizeShares = () => setShares(toPct(state.cands.map(c => c.share)));
 
 let rowRefs = [], shareRefs = [], batchRefs = [];
+let cur = null; // latest projection and the leader/runner-up the meter compares
 const cname = i => state.cands[i].name || `Candidate ${i+1}`;
 
 function buildRows(){
@@ -265,14 +278,16 @@ function buildRows(){
 
     const srow = document.createElement('div');
     srow.className = 'share';
-    srow.innerHTML = `<div class="lbl"><span class="dot" style="background:${col(i)}"></span><span data-cname="${i}"></span></div>
-      <output></output>
-      <input type="range" min="0" max="100" step="0.1" aria-label="Share of remaining for candidate ${i+1}" style="accent-color:${col(i)}">`;
+    srow.innerHTML = `<div class="top"><div class="lbl"><span class="dot" style="background:${col(i)}"></span><span data-cname="${i}"></span></div>
+        <span class="fin"></span></div>
+      <div class="det"></div>
+      <div class="ctl"><input type="range" min="0" max="100" step="0.1" style="accent-color:${col(i)}"><output></output></div>`;
     const lbl = srow.querySelector('.lbl span:last-child'), out = srow.querySelector('output'), rng = srow.querySelector('input');
     lbl.textContent = cname(i);
+    rng.setAttribute('aria-label', `${cname(i)}: share of the rest`);
     rng.addEventListener('input', () => { setShare(i, +rng.value); syncShares(); compute(); });
     sh.appendChild(srow);
-    shareRefs.push({ lbl, out, rng });
+    shareRefs.push({ lbl, out, rng, fin: srow.querySelector('.fin'), det: srow.querySelector('.det') });
   });
   syncShares();
   buildBatches();
@@ -310,7 +325,7 @@ function buildBatches(){
 function syncShares(){
   state.cands.forEach((c,i) => {
     shareRefs[i].rng.value = c.share;
-    shareRefs[i].out.textContent = c.share.toFixed(1) + '%';
+    shareRefs[i].out.innerHTML = `wins <b>${c.share.toFixed(1)}%</b>`;
   });
 }
 
@@ -340,14 +355,19 @@ function compute(){
       `<div><span>Est. total</span>${fmt(P.T)}</div>` +
       (P.over ? `<div class="note">Your batches add up to more than the ${fmt(P.est)} votes this % counted implies, so they’re treated as all that’s left (the count would be ${(P.C/P.T*100).toFixed(1)}% complete).</div>` : '');
   $('#sharesNote').innerHTML = P.B
-    ? 'Share each candidate wins of the remaining votes <em>not in a batch below</em>. Sliders always total 100%.'
-    : 'Share of the <em>remaining</em> votes each candidate wins. Sliders always total 100%.';
+    ? (P.rest > 0 ? 'Share each candidate wins of the remaining votes <em>outside your batches</em>. Always totals 100%.'
+                  : 'Your batches cover everything left, so these splits have no effect. Edit the batches instead.')
+    : 'Share each candidate wins of the <em>remaining</em> votes. Always totals 100%.';
+  state.cands.forEach((c,i) => {
+    shareRefs[i].fin.textContent = P.C ? pct(P.f[i]/P.T) : '';
+    shareRefs[i].det.textContent = P.C ? `${fmt(P.v[i])} counted + ${fmt(P.add[i])} more` : '';
+  });
 
   if(!P.C){
     $('#headline').textContent = 'Enter the count so far';
     $('#sub').textContent = '';
-    $('#needWrap').hidden = true; $('#table').innerHTML = '';
-    $('#mini').innerHTML = '<b>Lead Check</b>Enter the count so far';
+    $('#needWrap').hidden = true; cur = null;
+    $('#peek').innerHTML = '<b>Lead Check</b><span>Enter the count so far</span>';
     batchRefs.forEach(r => r.lean.textContent = '');
     save(); return;
   }
@@ -361,8 +381,8 @@ function compute(){
   $('#sub').textContent = `${mPts.toFixed(2)} pts of ~${fmt(P.T)} expected votes` + (tight ? ' — razor-thin, recount territory in many states' : '');
 
   // Break-even for the current runner-up vs current leader
-  const cur = rank(P.v);
-  const a = cur[0], b = cur[1];
+  const byCount = rank(P.v);
+  const a = byCount[0], b = byCount[1];
   const need = breakEven(P, a, b);
   const p2 = P.s[a] + P.s[b];
   const soFar = P.v[b] / P.C;
@@ -416,7 +436,7 @@ function compute(){
   }
   if(isFinite(need) && need <= 1) m += `<div class="mk top" style="left:${nX}%"><span>needs ${pct(need,1)}</span></div>`;
   m += `<div class="mk dash bot" style="left:${X(soFar)}%"><span>so far ${pct(soFar,1)}</span></div>`;
-  m += `<div class="pin" style="left:${X(P.s[b])}%" title="Your scenario"></div>`;
+  m += `<div class="pin" style="left:${X(P.s[b])}%"></div>`;
   $('#meter').innerHTML = m;
   $('#legend').innerHTML =
     `<span><i style="background:${ca};opacity:.5"></i>${esc(names[a])} holds on</span>` +
@@ -424,21 +444,21 @@ function compute(){
     (pX < 100 ? `<span><i style="background:var(--hatch)"></i>going to others</span>` : '') +
     `<span><i style="background:var(--surface);border:2px solid var(--text);border-radius:50%"></i>your scenario</span>`;
 
-  // Final table
-  const max = Math.max(...P.f);
-  let t = `<tr><th>Candidate</th><th>Counted</th><th>+ Remaining</th><th>Final</th></tr>`;
-  order.forEach(i => {
-    t += `<tr><td><span class="dot" style="display:inline-block;background:${col(i)};margin-right:6px"></span>${esc(names[i])}</td>
-      <td>${fmt(P.v[i])}</td><td>${fmt(P.add[i])}</td><td><b>${pct(P.f[i]/P.T)}</b></td></tr>
-      <tr class="bar"><td colspan="4"><div class="track">
-        <i style="width:${P.v[i]/max*100}%;background:${col(i)}"></i>
-        <i style="width:${P.add[i]/max*100}%;background:${col(i)};opacity:.4"></i>
-      </div></td></tr>`;
-  });
-  $('#table').innerHTML = t;
+  // The pin is draggable: it sets the runner-up's share of everything left, taken from the leader.
+  cur = { P, a, b };
+  const canDrag = P.rest > 0;
+  $('#meterWrap').classList.toggle('off', !canDrag);
+  const pinR = $('#pinRange');
+  pinR.disabled = !canDrag;
+  pinR.value = (P.s[b]*100).toFixed(1);
+  pinR.setAttribute('aria-label', `${names[b]}: share of all remaining votes`);
+  pinR.setAttribute('aria-valuetext', `${pct(P.s[b])} of what’s left`);
+  $('#pinHint').textContent = canDrag
+    ? `Drag the white dot to change how much of what’s left goes to ${names[b]}.`
+    : 'Your batches cover everything left, so edit them to change the scenario.';
 
-  $('#mini').innerHTML = `<b>${esc(names[w])} by ${fmt(margin)} (${mPts.toFixed(1)} pts)</b>` +
-    (isFinite(need) && need <= p2 ? `${esc(names[b])} needs ${pct(need)} of what’s left` : `${esc(names[b])} can’t catch up in this scenario`);
+  $('#peek').innerHTML = `<b>${esc(names[w])} by ${fmt(margin)} (${mPts.toFixed(1)} pts)</b><span>` +
+    (isFinite(need) && need <= p2 ? `${esc(names[b])} needs ${pct(need)} of what’s left` : `${esc(names[b])} can’t catch up in this scenario`) + '</span>';
   save();
 }
 
@@ -479,6 +499,35 @@ $('#addBatch').addEventListener('click', () => {
   buildBatches(); compute();
   $('#batches .batch:last-child .blabel').focus();
 });
+// Dragging the scenario pin: move share between the leader and runner-up only, so other
+// candidates (and the hatched "going to others" zone) stay put.
+function setPin(t){
+  if(!cur) return;
+  const { P, a, b } = cur;
+  const s0 = defaultShareFor(P, b, clamp(t, 0, 1));
+  if(s0 === null) return;
+  const sh = state.cands.map(c => c.share), pair = sh[a] + sh[b];
+  const total = sum(sh) || 100;
+  sh[b] = clamp(s0 * total, 0, pair); sh[a] = pair - sh[b];
+  setShares(sh); syncShares(); compute();
+}
+const mw = $('#meterWrap');
+const xFrac = e => { const r = $('#meter').getBoundingClientRect(); return (e.clientX - r.left) / r.width; };
+mw.addEventListener('pointerdown', e => {
+  if(mw.classList.contains('off') || e.button > 0) return;
+  mw.setPointerCapture(e.pointerId); mw.classList.add('drag'); setPin(xFrac(e));
+});
+mw.addEventListener('pointermove', e => { if(mw.classList.contains('drag')) setPin(xFrac(e)); });
+['pointerup','pointercancel','lostpointercapture'].forEach(ev => mw.addEventListener(ev, () => mw.classList.remove('drag')));
+$('#pinRange').addEventListener('input', e => setPin(+e.target.value / 100));
+
+// Phones: a compact summary slides in at the top while the scenario card is off screen.
+let resultVisible = true;
+const updatePeek = () => document.body.classList.toggle('peeking', !resultVisible && scrollY > 120);
+new IntersectionObserver(([en]) => { resultVisible = en.isIntersecting; updatePeek(); }, { threshold: 0.15 }).observe($('#result'));
+addEventListener('scroll', updatePeek, { passive: true });
+$('#peek').addEventListener('click', () => $('#result').scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' }));
+
 $('#matchCurrent').addEventListener('click', () => { matchCurrent(); syncShares(); compute(); });
 $('#evenSplit').addEventListener('click', () => { state.cands.forEach(c => c.share = 100/state.cands.length); syncShares(); compute(); });
 $('#reset').addEventListener('click', () => { state = defaults(); matchCurrent(); init(); });

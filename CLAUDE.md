@@ -26,8 +26,8 @@ Static single-page app (`public/index.html`, no build step), deployed to Cloudfl
 - Neutral palette (teal/amber/etc.), never red/blue. No partisan cues.
 - A what-if calculator, not a forecast. Never phrase output as a prediction.
 - Full scenario state lives in the URL hash (`#s=<json>`) for shareable links. No backend, no storage.
-- Share sliders are linked so they always total 100% (moving one rescales the others proportionally).
-- Mobile: sticky bottom summary bar. Desktop: two columns with a sticky result card.
+- The scenario card is the control surface: drag the white pin on the meter (or use arrow keys) to set the runner-up's share of ALL remaining votes, taken from the leader only so other candidates stay put. Each candidate row has its own share slider; those are linked so they always total 100% (moving one rescales the others proportionally). With batches, the pin sets the effective share and the sliders set the non-batch remainder (`defaultShareFor` in `lead.js`).
+- Mobile: a compact summary slides in at the top only while the scenario card is off screen (no bottom bar: it clashes with iOS Safari's floating toolbar). Desktop: two columns with a sticky scenario card.
 - Max 6 candidates; minimum 2.
 
 ## Next up
