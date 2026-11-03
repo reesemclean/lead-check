@@ -31,8 +31,8 @@ body{background:var(--bg);color:var(--text);font:15px/1.45 ui-sans-serif,system-
 .wrap{max-width:1080px;margin:0 auto;padding:24px 16px 48px}
 header h1{font-size:28px;letter-spacing:-.02em;margin:0 0 4px}
 header p{margin:0;color:var(--muted);max-width:60ch}
-.grid{display:grid;gap:16px;margin-top:20px}
-@media (min-width:900px){.grid{grid-template-columns:1fr 1fr;align-items:start}.result{position:sticky;top:16px}}
+.grid{display:grid;grid-template-columns:minmax(0,1fr);gap:16px;margin-top:20px}
+@media (min-width:900px){.grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:start}.result{position:sticky;top:16px}}
 .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px}
 .card + .card{margin-top:16px}
 .step{display:flex;align-items:baseline;gap:10px;margin:0 0 12px}
@@ -48,8 +48,8 @@ button.primary{background:var(--ink);color:var(--ink-text);border-color:var(--in
 .seg{display:inline-flex;background:var(--surface-2);border-radius:999px;padding:3px;margin-bottom:12px}
 .seg button{border:0;background:transparent;padding:5px 14px}
 .seg button[aria-pressed=true]{background:var(--surface);box-shadow:0 1px 2px rgba(0,0,0,.12)}
-.cand{display:grid;grid-template-columns:10px 1fr 1fr 28px;gap:8px;align-items:center;margin-bottom:8px}
-.cand .sofar{grid-column:2 / 4;font-size:12px;color:var(--muted);margin:-4px 0 4px}
+.cand{display:grid;grid-template-columns:10px 1fr 1fr 28px;gap:8px;align-items:center;margin-bottom:12px}
+.cand .sofar{grid-column:2 / 4;font-size:12px;color:var(--muted);margin:-2px 0 0}
 .dot{width:10px;height:10px;border-radius:50%}
 .num{position:relative}
 .num input{padding-right:48px;text-align:right}
@@ -62,13 +62,14 @@ input[type=range]{width:100%;accent-color:var(--ink)}
 .pctin{display:grid;grid-template-columns:1fr 84px auto;gap:8px;align-items:center}
 .chip{padding:8px 12px;white-space:nowrap;font-size:14px;min-width:72px}
 .chip small{color:var(--muted);font-size:12px}
-.stat{display:flex;gap:16px;flex-wrap:wrap;background:var(--surface-2);border-radius:10px;padding:10px 12px;font-size:14px}
+.stat{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:10px 16px;background:var(--surface-2);border-radius:10px;padding:10px 12px;font-size:14px}
+.stat > .muted{grid-column:1 / -1}
 .stat div span{display:block;font-size:12px;color:var(--muted)}
 .share{padding:10px 0;border-top:1px solid var(--border)}
 .share:first-child{border-top:0}
-.share .top{display:flex;align-items:baseline;gap:8px}
+.share .top{display:flex;align-items:baseline;gap:12px}
 .share .lbl{display:flex;align-items:center;gap:8px;font-weight:600;min-width:0;flex:1}
-.share .lbl span:last-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.share .lbl span:last-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
 .share .fin{font-weight:700;font-size:16px}
 .share .det{font-size:12px;color:var(--muted);margin:2px 0 4px 18px}
 .share .ctl{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;margin-left:18px}
@@ -76,13 +77,14 @@ input[type=range]{width:100%;accent-color:var(--ink)}
 .share output b{color:var(--text)}
 .breaks{border-top:1px solid var(--border);margin-top:16px;padding-top:14px}
 .breaks h3{font-size:15px;margin:0}
+.breaks .row{margin-top:12px}
 .warn{color:var(--c1);font-size:13px;margin:4px 0 0}
 .eyebrow{font-size:12px;color:var(--muted);font-weight:600;letter-spacing:.06em;text-transform:uppercase}
 #headline{font-size:24px;letter-spacing:-.02em;margin:4px 0 2px;line-height:1.2}
 .need{border-top:1px solid var(--border);margin-top:16px;padding-top:14px}
 #needText{font-size:16px}
 #needText b{font-size:20px}
-.meterwrap{position:relative;margin:30px 0 0;touch-action:pan-y;cursor:pointer;user-select:none;-webkit-user-select:none}
+.meterwrap{position:relative;margin:34px 0 0;touch-action:pan-y;cursor:pointer;user-select:none;-webkit-user-select:none}
 .meterwrap.off{cursor:default}
 .meter{position:relative;height:34px;border-radius:8px;overflow:visible}
 .pinrange{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;pointer-events:none}
@@ -92,17 +94,19 @@ input[type=range]{width:100%;accent-color:var(--ink)}
 .band{position:absolute;top:-4px;bottom:-4px;background:var(--text);opacity:.12;border-radius:4px}
 .mk{position:absolute;top:-6px;bottom:-6px;width:2px;background:var(--text);transform:translateX(-1px)}
 .mk span{position:absolute;white-space:nowrap;font-size:11px;font-weight:600;transform:translateX(-50%);left:1px}
-.mk.top span{bottom:100%;margin-bottom:2px}
-.mk.bot span{top:100%;margin-top:2px}
+.mk.al span{transform:none;left:-2px}
+.mk.ar span{transform:none;left:auto;right:-2px}
+.mk.top span{bottom:100%;margin-bottom:3px}
+.mk.bot span{top:100%;margin-top:3px}
 .mk.dash{background:none;border-left:2px dashed var(--text)}
 .pin{position:absolute;top:50%;width:24px;height:24px;border-radius:50%;background:var(--surface);border:3px solid var(--text);transform:translate(-50%,-50%);box-shadow:0 1px 4px rgba(0,0,0,.25);cursor:grab}
 .meterwrap.drag .pin{cursor:grabbing;transform:translate(-50%,-50%) scale(1.15)}
 .meterwrap.off .pin{cursor:default}
-.axis{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-top:24px}
-.hint{font-size:12px;color:var(--muted);margin:6px 0 0}
-.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin-top:10px}
+.axis{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-top:30px}
+.hint{font-size:12px;color:var(--muted);margin:10px 0 0}
+.legend{display:flex;gap:6px 16px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin-top:10px}
 .legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
-.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px;padding-top:16px;border-top:1px solid var(--border)}
 footer{margin-top:28px;color:var(--muted);font-size:13px;max-width:70ch}
 footer h3{color:var(--text);font-size:14px;margin:0 0 6px}
 footer ul{margin:0;padding-left:18px}
@@ -116,7 +120,7 @@ footer ul{margin:0;padding-left:18px}
 .bs > span:nth-child(2){overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .bs .num input{padding-right:24px;padding-left:6px}
 .blean{font-size:12px;color:var(--muted);margin-top:6px}
-.stat .note{flex-basis:100%;font-size:13px;color:var(--c1)}
+.stat .note{grid-column:1 / -1;font-size:13px;color:var(--c1);line-height:1.4}
 .peek{position:fixed;left:0;right:0;top:0;z-index:5;display:block;width:100%;text-align:left;border:0;border-bottom:1px solid var(--border);border-radius:0;background:var(--surface);padding:10px 16px;padding-top:calc(10px + env(safe-area-inset-top));font-size:14px;box-shadow:0 2px 10px rgba(0,0,0,.08);transform:translateY(-110%);transition:transform .2s ease;visibility:hidden}
 .peek b{display:block;font-size:15px}
 .peek span{color:var(--muted)}
@@ -412,13 +416,17 @@ function compute(){
     const pLo = clamp(state.pctIn - state.unc, 1, 100), pHi = clamp(state.pctIn + state.unc, 1, 100);
     lo = breakEven(project(pLo), a, b);  // more left → lower bar
     hi = breakEven(project(pHi), a, b);
-    $('#rangeText').textContent = needLabel(lo) === needLabel(hi)
+    const reach = n => isFinite(n) && n <= p2 + 1e-9;
+    $('#rangeText').textContent = !reach(lo) && !reach(hi)
+      ? `Even if the count is really ${pLo}–${pHi}% complete, ${names[b]} can’t catch up.`
+      : needLabel(lo) === needLabel(hi)
       ? `Even if the count is really ${pLo}–${pHi}% complete, ${names[b]} still needs ${needLabel(lo)}` + (P.B ? ' (your batches cover what’s left).' : '.')
       : `If the count is really ${pLo}–${pHi}% complete, ${names[b]} needs between ${needLabel(lo)} and ${needLabel(hi)}.`;
   } else $('#rangeText').textContent = '';
 
   // Meter: x = runner-up's share of ALL remaining votes
   const X = v => clamp(v,0,1) * 100;
+  const edge = x => x < 15 ? ' al' : x > 85 ? ' ar' : '';
   const ca = col(a), cb = col(b);
   const nX = X(isFinite(need) ? need : 1), pX = X(p2);
   let m = `<div class="zone" style="left:0;width:${Math.min(nX,pX)}%;background:${ca};opacity:.28;border-radius:8px 0 0 8px"></div>`;
@@ -428,13 +436,13 @@ function compute(){
     const l = X(isFinite(lo)?lo:1), h = X(isFinite(hi)?hi:1);
     if(h > l) m += `<div class="band" style="left:${l}%;width:${h-l}%"></div>`;
   }
-  if(isFinite(need) && need <= 1) m += `<div class="mk top" style="left:${nX}%"><span>needs ${pct(need,1)}</span></div>`;
-  m += `<div class="mk dash bot" style="left:${X(soFar)}%"><span>so far ${pct(soFar,1)}</span></div>`;
+  if(isFinite(need) && need <= 1) m += `<div class="mk top${edge(nX)}" style="left:${nX}%"><span>needs ${pct(need,1)}</span></div>`;
+  m += `<div class="mk dash bot${edge(X(soFar))}" style="left:${X(soFar)}%"><span>so far ${pct(soFar,1)}</span></div>`;
   m += `<div class="pin" style="left:${X(P.s[b])}%"></div>`;
   $('#meter').innerHTML = m;
   $('#legend').innerHTML =
     `<span><i style="background:${ca};opacity:.5"></i>${esc(names[a])} holds on</span>` +
-    `<span><i style="background:${cb};opacity:.5"></i>${esc(names[b])} overtakes</span>` +
+    (nX < pX ? `<span><i style="background:${cb};opacity:.5"></i>${esc(names[b])} overtakes</span>` : '') +
     (pX < 100 ? `<span><i style="background:var(--hatch)"></i>going to others</span>` : '') +
     `<span><i style="background:var(--surface);border:2px solid var(--text);border-radius:50%"></i>your scenario</span>`;
 
