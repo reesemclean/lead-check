@@ -74,17 +74,6 @@ export function breakEven(P, a, b) {
   return P.s[b] + (P.f[a] - P.f[b]) / (2 * P.R);
 }
 
-/**
- * Default-pool share (0–1) that gives candidate i an effective share of ALL remaining votes
- * equal to `target`, given the batches in P. Clamped to 0–1. Null when nothing is left outside
- * batches (the default split then has no effect).
- */
-export function defaultShareFor(P, i, target) {
-  if (!(P.rest > 0)) return null;
-  const fromBatches = sum(P.pools.map(p => p.n * p.s[i]));
-  return clamp((target * P.R - fromBatches) / P.rest, 0, 1);
-}
-
 /** Share percentages that mirror the count so far. */
 export function sharesFromCounted(v) {
   const C = sum(v);

@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   num, normalize, counted, remaining, project, breakEven, rank,
-  sharesFromCounted, rebalance, toPct, defaults, encodeState, decodeState, sum, defaultShareFor
+  sharesFromCounted, rebalance, toPct, defaults, encodeState, decodeState, sum
 } from '../public/lead.js';
 
 const close = (a, b, eps = 1e-6) => expect(Math.abs(a - b)).toBeLessThan(eps);
@@ -219,28 +219,6 @@ describe('batches', () => {
   });
 });
 
-describe('defaultShareFor (dragging the scenario marker)', () => {
-  const v = [52000, 48000];
-  it('equals the target with no batches', () => {
-    const P = project({ v, pIn: 80, shares: [50, 50] });
-    close(defaultShareFor(P, 1, 0.56), 0.56);
-  });
-  it('accounts for batches so the effective share lands on the target', () => {
-    const base = { v, pIn: 80, batches: [{ votes: 10000, shares: [40, 60] }] };
-    const P = project({ ...base, shares: [50, 50] });
-    const s0 = defaultShareFor(P, 1, 0.55);
-    const P2 = project({ ...base, shares: rebalance([50, 50], 1, s0 * 100) });
-    close(P2.s[1], 0.55);
-  });
-  it('clamps when the target is out of reach of the default pool', () => {
-    const P = project({ v, pIn: 80, shares: [50, 50], batches: [{ votes: 20000, shares: [0, 100] }] });
-    expect(defaultShareFor(P, 1, 0.1)).toBe(0);
-  });
-  it('is null when batches cover everything', () => {
-    const P = project({ v, pIn: 80, shares: [50, 50], batches: [{ votes: 90000, shares: [50, 50] }] });
-    expect(defaultShareFor(P, 1, 0.5)).toBeNull();
-  });
-});
 
 describe('uncertainty in URL state', () => {
   const withUnc = unc => decodeState(encodeState({ ...defaults(), unc })).unc;
